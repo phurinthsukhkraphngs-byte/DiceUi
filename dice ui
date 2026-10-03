@@ -1,0 +1,3887 @@
+--!strict
+-- ==============================================================================
+-- DICEHUB UI TEMPLATE & LIBRARY (DICEUI v2.2 - NEVERLOSE / OBSIDIAN ACRYLIC)
+-- Production Standard: Clean, Modular, Cross-Platform (PC & Mobile)
+-- Architecture: Deep Obsidian Charcoal Acrylic Glassmorphism, Modular Card Grid,
+--               Collapsible Mobile Sidebar, Zero Disk I/O Logo CDN Fallback,
+--               Docked Edge Auto-Fading Floating Button, Live Telemetry,
+--               Ultra-Dense Neverlose / ImGui High-Density Control Suite.
+-- ==============================================================================
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+
+--==================================================
+-- GLOBAL LOGO CONFIGURATION & INVARIANTS
+-- Rule: Never use Decal ID directly. Zero Disk I/O.
+--==================================================
+local LOGO_IMAGE_ID = "rbxassetid://111067740620283"
+local LOGO_THUMB_ID = "rbxthumb://type=Asset&id=98813768313498&w=420&h=420"
+
+local function applyDiceLogo(img: ImageLabel | ImageButton)
+    img.Image = LOGO_IMAGE_ID
+    task.spawn(function()
+        task.wait(1.5)
+        if not img.IsLoaded then
+            img.Image = LOGO_THUMB_ID
+        end
+    end)
+end
+
+--==================================================
+-- BUILT-IN ICON ENUM / ASSETS (Lucide Crisp Icons)
+--==================================================
+local Icons = {
+    -- Brand & Identity
+    Dice = LOGO_IMAGE_ID,
+    Logo = LOGO_IMAGE_ID,
+
+    -- Navigation & General UI
+    Home = "rbxassetid://10723407389",
+    Menu = "rbxassetid://7733993211",
+    Layers = "rbxassetid://10723424888",
+    Grid = "rbxassetid://10709782342",
+    Folder = "rbxassetid://10723387563",
+    File = "rbxassetid://10723374641",
+    FileText = "rbxassetid://10723374276",
+    Globe = "rbxassetid://10723398494",
+    Compass = "rbxassetid://10709811445",
+    Search = "rbxassetid://10734943674",
+    Sparkles = "rbxassetid://10734964600",
+    Star = "rbxassetid://10734966248",
+    Heart = "rbxassetid://10723406885",
+    Clock = "rbxassetid://8997384456",
+    Hash = "rbxassetid://7733955906",
+    Link = "rbxassetid://7733978098",
+    Share = "rbxassetid://7734053595",
+
+    -- Combat & PvP & Arsenal
+    Sword = "rbxassetid://10734975486",
+    Swords = "rbxassetid://10734975692",
+    Shield = "rbxassetid://10734951847",
+    ShieldAlert = "rbxassetid://10734951173",
+    ShieldCheck = "rbxassetid://10734951367",
+    Crosshair = "rbxassetid://10709818534",
+    Target = "rbxassetid://10734977012",
+    Skull = "rbxassetid://10734962068",
+    Zap = "rbxassetid://10709807604",
+    Flame = "rbxassetid://10723376114",
+    Bomb = "rbxassetid://10709781460",
+    Axe = "rbxassetid://10709761448",
+    Pickaxe = "rbxassetid://10734921379",
+    Wand = "rbxassetid://10747376565",
+    Lightning = "rbxassetid://10709805727",
+
+    -- Farming & Economy & Inventory
+    Coins = "rbxassetid://10709811110",
+    Gem = "rbxassetid://10723396000",
+    Trophy = "rbxassetid://10747363809",
+    Crown = "rbxassetid://10709818626",
+    ShoppingBag = "rbxassetid://10734954201",
+    ShoppingCart = "rbxassetid://10709782582",
+    Package = "rbxassetid://10734909540",
+    Box = "rbxassetid://10709782497",
+    Backpack = "rbxassetid://10709763784",
+    Gift = "rbxassetid://10723396919",
+    Scroll = "rbxassetid://74072101474951",
+    Book = "rbxassetid://10709781673",
+    Apple = "rbxassetid://10709761889",
+    Bone = "rbxassetid://10709781605",
+    Award = "rbxassetid://10709769406",
+    Candy = "rbxassetid://10709790194",
+    Fish = "rbxassetid://10723381245",
+    Egg = "rbxassetid://10723345518",
+    Paw = "rbxassetid://10709781605",
+    Leaf = "rbxassetid://10723425539",
+    Trees = "rbxassetid://10747363016",
+    Magnet = "rbxassetid://10723435069",
+
+    -- Player & Character & Movement
+    User = "rbxassetid://10747373176",
+    Users = "rbxassetid://10747373426",
+    Activity = "rbxassetid://10709752035",
+    Person = "rbxassetid://10747373176",
+    Smile = "rbxassetid://7734059095",
+    Rocket = "rbxassetid://10734934585",
+    Anchor = "rbxassetid://10709761530",
+    Car = "rbxassetid://10709789810",
+    Plane = "rbxassetid://10734922971",
+    Truck = "rbxassetid://7743874482",
+    Wind = "rbxassetid://10747382750",
+
+    -- World & Teleports & Location
+    MapPin = "rbxassetid://10734886004",
+    Map = "rbxassetid://10723435889",
+    Navigation = "rbxassetid://10734906744",
+    Mountain = "rbxassetid://10734897956",
+    Waves = "rbxassetid://10747376931",
+    Cloud = "rbxassetid://10709806740",
+    Snowflake = "rbxassetid://10734964600",
+
+    -- Visuals & Render & ESP
+    Eye = "rbxassetid://10723346959",
+    EyeOff = "rbxassetid://10723346871",
+    Palette = "rbxassetid://10734910430",
+    Brush = "rbxassetid://10709782758",
+    Sun = "rbxassetid://10734974295",
+    Moon = "rbxassetid://10734897102",
+    Tv = "rbxassetid://7743874674",
+    Camera = "rbxassetid://7733708692",
+    Flashlight = "rbxassetid://10723376471",
+    Glasses = "rbxassetid://10723397895",
+
+    -- System & Automation & Tweaks
+    Bot = "rbxassetid://10709782230",
+    Cpu = "rbxassetid://10709818849",
+    Terminal = "rbxassetid://10734982144",
+    Code = "rbxassetid://10709810463",
+    Database = "rbxassetid://10709818996",
+    Server = "rbxassetid://10734949856",
+    Sliders = "rbxassetid://10734963400",
+    SlidersHorizontal = "rbxassetid://10734963191",
+    Settings = "rbxassetid://10734950309",
+    Wrench = "rbxassetid://10747383470",
+    Hammer = "rbxassetid://10723405360",
+    Refresh = "rbxassetid://10734940376",
+    Wifi = "rbxassetid://10747382504",
+    Gauge = "rbxassetid://10723395708",
+    Timer = "rbxassetid://10734984606",
+    Fingerprint = "rbxassetid://10723375250",
+    Download = "rbxassetid://10723343003",
+    Upload = "rbxassetid://10747375434",
+
+    -- Security & Alerts
+    Lock = "rbxassetid://10723434711",
+    Unlock = "rbxassetid://10747374938",
+    Key = "rbxassetid://10723416765",
+    AlertCircle = "rbxassetid://10709752996",
+    AlertTriangle = "rbxassetid://10709753149",
+    Info = "rbxassetid://10723415903",
+    HelpCircle = "rbxassetid://10723406459",
+
+    -- Audio & Media & Social
+    Bell = "rbxassetid://10709775963",
+    Volume = "rbxassetid://10747375679",
+    Volume2 = "rbxassetid://10747375679",
+    Music = "rbxassetid://10734905958",
+    Headphones = "rbxassetid://10723406165",
+    Radio = "rbxassetid://10734931596",
+    Play = "rbxassetid://7734022107",
+    Pause = "rbxassetid://7734020924",
+    Gamepad = "rbxassetid://10723395457",
+    Gamepad2 = "rbxassetid://10723395215",
+    MessageSquare = "rbxassetid://10734888228",
+    Send = "rbxassetid://10734943902",
+
+    -- Actions & UI
+    Check = "rbxassetid://10709790644",
+    CheckCircle = "rbxassetid://10709790387",
+    Close = "rbxassetid://10747384394",
+    X = "rbxassetid://10747384394",
+    XCircle = "rbxassetid://10747384131",
+    Minimize = "rbxassetid://7733920644",
+    ChevronDown = "rbxassetid://7733717444",
+    ChevronRight = "rbxassetid://7733717487",
+    Save = "rbxassetid://10734941499",
+    Copy = "rbxassetid://10709812159",
+    Trash = "rbxassetid://10747362393",
+    Tag = "rbxassetid://7734075797",
+    Ticket = "rbxassetid://7734086558"
+}
+
+--==================================================
+-- THEME PALETTE (ROYAL AMETHYST & CYBERPUNK NEON PURPLE)
+--==================================================
+local Theme = {
+    -- Ultra-Clean Obsidian & Charcoal Dark Palette (Minimalist, Zero Muddy Tint, Physical 3D Depth)
+    MainBg = Color3.fromRGB(13, 14, 18),               -- #0d0e12 Deep matte obsidian charcoal
+    MainBgTransparency = 0.02,
+    HeaderBg = Color3.fromRGB(17, 19, 25),            -- #111319 Elevated dark topbar
+    HeaderBgTransparency = 0.0,
+    SidebarBg = Color3.fromRGB(15, 17, 22),           -- #0f1116 Clean dark sidebar
+    SidebarBgTransparency = 0.0,
+    CardBg = Color3.fromRGB(20, 23, 30),              -- #14171e Crisp matte 3D card surface
+    CardBgTransparency = 0.0,
+    CardBgHover = Color3.fromRGB(26, 30, 40),          -- #1a1e28
+    ItemBg = Color3.fromRGB(15, 17, 23),              -- #0f1117 Inset 3D control row
+    ItemBgHover = Color3.fromRGB(24, 28, 38),          -- #181c26
+    ItemTrack = Color3.fromRGB(24, 28, 38),           -- #181c26 Inset 3D track
+
+    -- Secondary Accent: Radiant Royal Amethyst & Cyberpunk Purple (#a855f7 / #c084fc / #d946ef)
+    Accent = Color3.fromRGB(168, 85, 247),            -- #a855f7 Vibrant Royal Violet
+    AccentSecondary = Color3.fromRGB(217, 70, 239),   -- #d946ef Electric Magenta
+    AccentLight = Color3.fromRGB(233, 213, 255),       -- #e9d5ff Soft Lavender Highlight
+    AccentDark = Color3.fromRGB(139, 92, 246),         -- #8b5cf6 Deep Royal Violet
+    AccentTertiary = Color3.fromRGB(99, 102, 241),    -- #6366f1 Deep Indigo
+    AccentGlow = Color3.fromRGB(168, 85, 247),
+
+    -- Radiant Royal Purple Gradients for 3D Embellishments & Fills
+    AccentGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(147, 51, 234)),   -- Purple-600 #9333ea
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(168, 85, 247)),   -- Purple-500 #a855f7
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(192, 132, 252))   -- Purple-400 #c084fc
+    }),
+
+    FlowingGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(168, 85, 247)),
+        ColorSequenceKeypoint.new(0.35, Color3.fromRGB(217, 70, 239)),
+        ColorSequenceKeypoint.new(0.70, Color3.fromRGB(139, 92, 246)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(168, 85, 247))
+    }),
+
+    GlassStrokeGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(168, 85, 247)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(168, 85, 247))
+    }),
+
+    -- Typography (Clean, Crisp, High Contrast)
+    TextTitle = Color3.fromRGB(255, 255, 255),        -- #ffffff Pure crisp white
+    TextBody = Color3.fromRGB(228, 232, 242),         -- #e4e8f2 Clean platinum silver
+    TextMuted = Color3.fromRGB(148, 156, 175),        -- #949caf Cool modern slate
+    TextDim = Color3.fromRGB(98, 106, 126),          -- #626a7e Subtitle / category hints
+
+    -- 3D Physical Borders & Elevation Strokes (1px Ultra-Crisp Precision)
+    Border = Color3.fromRGB(36, 40, 54),              -- #242836 3D bevel stroke
+    BorderTransparency = 0.25,
+    CardStroke = Color3.fromRGB(34, 38, 50),          -- #222632 Clean card boundary
+    CardStrokeTransparency = 0.25,
+
+    -- Status Colors (Vibrant & Clean)
+    Success = Color3.fromRGB(34, 197, 94),            -- Emerald #22c55e
+    Warning = Color3.fromRGB(245, 158, 11),           -- Amber #f59e0b
+    Danger = Color3.fromRGB(239, 68, 68),             -- Crimson #ef4444
+
+    -- Fonts
+    FontBold = Enum.Font.GothamBold,
+    FontMedium = Enum.Font.GothamMedium,
+    FontRegular = Enum.Font.Gotham
+}
+
+--==================================================
+-- UTILITIES & HELPERS
+--==================================================
+local function getSafeGuiParent(): Instance
+    local success, core = pcall(function()
+        local gethui = (getgenv and getgenv().gethui) or nil
+        if gethui then return gethui() end
+        return CoreGui
+    end)
+    if success and core then return core end
+    return LocalPlayer:WaitForChild("PlayerGui")
+end
+
+local function makeTween(obj: Instance, duration: number, properties: { [string]: any }, style: Enum.EasingStyle?, dir: Enum.EasingDirection?): Tween
+    local tweenInfo = TweenInfo.new(
+        duration or 0.22,
+        style or Enum.EasingStyle.Quart,
+        dir or Enum.EasingDirection.Out
+    )
+    local tween = TweenService:Create(obj, tweenInfo, properties)
+    tween:Play()
+    return tween
+end
+
+local function addCorner(parent: Instance, radius: number): UICorner
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius)
+    c.Parent = parent
+    return c
+end
+
+local function addStroke(parent: Instance, color: Color3, thickness: number, trans: number): UIStroke
+    local s = Instance.new("UIStroke")
+    s.Color = color or Theme.Border
+    s.Thickness = thickness or 1
+    s.Transparency = trans or Theme.BorderTransparency
+    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    s.Parent = parent
+    return s
+end
+
+local function addPadding(parent: Instance, top: number, bottom: number, left: number, right: number): UIPadding
+    local p = Instance.new("UIPadding")
+    p.PaddingTop = UDim.new(0, top)
+    p.PaddingBottom = UDim.new(0, bottom)
+    p.PaddingLeft = UDim.new(0, left)
+    p.PaddingRight = UDim.new(0, right)
+    p.Parent = parent
+    return p
+end
+
+--==================================================
+-- DRAGGABLE HELPER (PIXEL-PERFECT CLAMPING, PC & MOBILE)
+--==================================================
+local function makeDraggable(topbar: GuiObject, mainFrame: GuiObject, connections: { RBXScriptConnection })
+    local dragging = false
+    local dragInput = nil
+    local dragStart = Vector3.zero
+    local startPos = UDim2.new()
+
+    local conn1 = topbar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            local pos = input.Position
+            local rightHeader = topbar:FindFirstChild("RightHeader") :: GuiObject?
+            if rightHeader then
+                local rhPos = rightHeader.AbsolutePosition
+                local rhSize = rightHeader.AbsoluteSize
+                if pos.X >= rhPos.X and pos.X <= (rhPos.X + rhSize.X) and pos.Y >= rhPos.Y and pos.Y <= (rhPos.Y + rhSize.Y) then
+                    return
+                end
+            end
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+        end
+    end)
+
+    local conn2 = topbar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    local conn3 = UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            mainFrame.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    local conn4 = UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+            dragInput = nil
+        end
+    end)
+
+    table.insert(connections, conn1)
+    table.insert(connections, conn2)
+    table.insert(connections, conn3)
+    table.insert(connections, conn4)
+end
+
+--==================================================
+-- MAIN LIBRARY TABLE
+--==================================================
+local DiceUI = {
+    Icons = Icons,
+    Theme = Theme,
+    Windows = {},
+    Toggles = {},
+    Options = {},
+    _activeGui = nil,
+    _activeDropdown = nil,
+    _connections = {} :: { RBXScriptConnection }
+}
+
+if typeof(getgenv) == "function" then
+    local g = getgenv()
+    g.DiceUI = DiceUI
+    g.Toggles = DiceUI.Toggles
+    g.Options = DiceUI.Options
+end
+
+-- Clean Unload
+function DiceUI:Unload()
+    for _, conn in ipairs(self._connections) do
+        pcall(function() conn:Disconnect() end)
+    end
+    table.clear(self._connections)
+
+    for _, win in ipairs(self.Windows) do
+        pcall(function() win._gui:Destroy() end)
+    end
+    table.clear(self.Windows)
+
+    if self._activeGui then
+        pcall(function() self._activeGui:Destroy() end)
+        self._activeGui = nil
+    end
+
+    table.clear(self.Toggles)
+    table.clear(self.Options)
+
+    if typeof(getgenv) == "function" then
+        local g = getgenv()
+        g.DiceUI = nil
+        g.Toggles = nil
+        g.Options = nil
+    end
+    print("[DiceUI] Cleanly unloaded all connections and GUIs.")
+end
+
+-- Smart Icon Resolver with Fuzzy / Semantic Alias Support
+function DiceUI:GetIcon(iconOrName: string?): string
+    if not iconOrName or iconOrName == "" then return Icons.Layers end
+    -- Direct asset ID or thumbnail URI pass-through
+    if string.find(iconOrName, "://") then
+        return iconOrName
+    end
+    -- Exact key match in Icons table
+    if Icons[iconOrName] then
+        return Icons[iconOrName]
+    end
+    -- Normalized case-insensitive lookup
+    local lower = string.lower(iconOrName):gsub("[%s%-_]+", "")
+    for name, assetId in pairs(Icons) do
+        local nLower = string.lower(name):gsub("[%s%-_]+", "")
+        if nLower == lower then
+            return assetId
+        end
+    end
+    -- Semantic Thematic Aliases
+    local aliases = {
+        combat = Icons.Sword,
+        attack = Icons.Sword,
+        pvp = Icons.Swords,
+        weapon = Icons.Sword,
+        aimbot = Icons.Crosshair,
+        silentaim = Icons.Target,
+        farm = Icons.Coins,
+        autofarm = Icons.Coins,
+        quest = Icons.Scroll,
+        mission = Icons.Scroll,
+        teleport = Icons.MapPin,
+        tp = Icons.MapPin,
+        waypoint = Icons.Compass,
+        world = Icons.Globe,
+        visuals = Icons.Eye,
+        esp = Icons.Eye,
+        chams = Icons.Eye,
+        render = Icons.Sun,
+        theme = Icons.Palette,
+        color = Icons.Palette,
+        player = Icons.User,
+        character = Icons.User,
+        speed = Icons.Zap,
+        fly = Icons.Plane,
+        jump = Icons.Rocket,
+        noclip = Icons.EyeOff,
+        config = Icons.Save,
+        configuration = Icons.Save,
+        settings = Icons.Settings,
+        system = Icons.Cpu,
+        security = Icons.ShieldCheck,
+        bypass = Icons.Unlock,
+        inventory = Icons.Backpack,
+        items = Icons.Package,
+        shop = Icons.ShoppingBag,
+        money = Icons.Coins,
+        diamond = Icons.Gem,
+        pets = Icons.Paw, pet = Icons.Paw, paw = Icons.Paw, bone = Icons.Paw,
+        fish = Icons.Fish, fishing = Icons.Fish,
+        mine = Icons.Pickaxe, mining = Icons.Pickaxe, pick = Icons.Pickaxe,
+        hatch = Icons.Egg, hatching = Icons.Egg, egg = Icons.Egg,
+        teleport = Icons.MapPin, tp = Icons.MapPin, mappin = Icons.MapPin, ["map-pin"] = Icons.MapPin,
+        magic = Icons.Wand, enchant = Icons.Wand, wand = Icons.Wand,
+        chat = Icons.MessageSquare, message = Icons.MessageSquare,
+        webhook = Icons.Send, send = Icons.Send, discord = Icons.Share,
+        controls = Icons.Gamepad, gamepad = Icons.Gamepad, controller = Icons.Gamepad,
+        performance = Icons.Gauge, gauge = Icons.Gauge, fps = Icons.Activity, stats = Icons.Activity,
+        cooldown = Icons.Timer, timer = Icons.Timer,
+        antidetect = Icons.Fingerprint, stealth = Icons.Fingerprint, safety = Icons.ShieldAlert,
+        collect = Icons.Magnet, magnet = Icons.Magnet,
+        nature = Icons.Leaf, leaf = Icons.Leaf,
+        lumber = Icons.Trees, wood = Icons.Trees, tree = Icons.Trees, trees = Icons.Trees,
+        mountain = Icons.Mountain, climb = Icons.Mountain,
+        ocean = Icons.Waves, water = Icons.Waves, sea = Icons.Waves, waves = Icons.Waves,
+        weather = Icons.Cloud, cloud = Icons.Cloud,
+        ice = Icons.Snowflake, frost = Icons.Snowflake, snow = Icons.Snowflake,
+        trade = Icons.Candy, trading = Icons.Candy, candy = Icons.Candy,
+        download = Icons.Download, load = Icons.Download,
+        upload = Icons.Upload, export = Icons.Upload,
+        boss = Icons.Skull, dungeon = Icons.Skull, raid = Icons.Swords,
+        misc = Icons.Grid, utility = Icons.Wrench, tools = Icons.Wrench,
+        network = Icons.Wifi, server = Icons.Server, music = Icons.Music, sound = Icons.Volume2,
+        camera = Icons.Camera, rewards = Icons.Trophy, event = Icons.Ticket, social = Icons.Users,
+        info = Icons.Info, about = Icons.Info, help = Icons.HelpCircle, home = Icons.Home,
+        dice = Icons.Dice,
+        hub = Icons.Dice,
+        logo = Icons.Dice
+    }
+    if aliases[lower] then
+        return aliases[lower]
+    end
+    return Icons.Layers
+end
+
+-- Notification Manager
+function DiceUI:Notify(cfg: {
+    Title: string?,
+    Content: string,
+    Duration: number?,
+    Type: string?
+})
+    local parent = DiceUI._activeGui
+    if not parent then return end
+
+    local notifyHolder = parent:FindFirstChild("DiceNotifyHolder") :: Frame?
+    if not notifyHolder then
+        local holder = Instance.new("Frame")
+        holder.BorderSizePixel = 0
+        holder.Name = "DiceNotifyHolder"
+        holder.Size = UDim2.new(0, 300, 1, -40)
+        holder.Position = UDim2.new(1, -315, 0, 20)
+        holder.BackgroundTransparency = 1
+        holder.ZIndex = 9999
+        holder.Parent = parent
+
+        local list = Instance.new("UIListLayout")
+        list.SortOrder = Enum.SortOrder.LayoutOrder
+        list.VerticalAlignment = Enum.VerticalAlignment.Bottom
+        list.Padding = UDim.new(0, 8)
+        list.Parent = holder
+        notifyHolder = holder
+    end
+
+    local titleText = cfg.Title or "DiceHUB"
+    local contentText = cfg.Content or ""
+    local duration = cfg.Duration or 3.0
+
+    local card = Instance.new("Frame")
+    card.Name = "Toast"
+    card.Size = UDim2.new(1, 0, 0, 56)
+    card.BackgroundColor3 = Theme.CardBg
+    card.BackgroundTransparency = 0.05
+    card.ClipsDescendants = true
+    addCorner(card, 8)
+    local nType = string.lower(cfg.Type or "info")
+    local nColor = Theme.Accent
+    if nType == "success" then nColor = Theme.Success
+    elseif nType == "warning" then nColor = Theme.Warning
+    elseif nType == "error" then nColor = Theme.Danger end
+    local stroke = addStroke(card, nColor, 1, 0.55)
+    -- Inset TypeBar with safe margin to prevent corner clipping
+    local sideBar = Instance.new("Frame")
+    sideBar.Name = "TypeBar"
+    sideBar.Size = UDim2.new(0, 3, 1, -16)
+    sideBar.Position = UDim2.new(0, 4, 0.5, 0)
+    sideBar.AnchorPoint = Vector2.new(0, 0.5)
+    sideBar.BackgroundColor3 = nColor
+    sideBar.BorderSizePixel = 0
+    addCorner(sideBar, 2)
+    sideBar.Parent = card
+
+    local logo = Instance.new("ImageLabel")
+    logo.Size = UDim2.new(0, 26, 0, 26)
+    logo.Position = UDim2.new(0, 10, 0.5, 0)
+    logo.AnchorPoint = Vector2.new(0, 0.5)
+    logo.BackgroundTransparency = 1
+    applyDiceLogo(logo)
+    logo.Parent = card
+
+    local tLabel = Instance.new("TextLabel")
+    tLabel.Size = UDim2.new(1, -46, 0, 16)
+    tLabel.Position = UDim2.new(0, 44, 0, 8)
+    tLabel.BackgroundTransparency = 1
+    tLabel.Font = Theme.FontBold
+    tLabel.Text = titleText
+    tLabel.TextColor3 = Theme.TextTitle
+    tLabel.TextSize = 12
+    tLabel.TextXAlignment = Enum.TextXAlignment.Left
+    tLabel.Parent = card
+
+    local cLabel = Instance.new("TextLabel")
+    cLabel.Size = UDim2.new(1, -46, 0, 24)
+    cLabel.Position = UDim2.new(0, 44, 0, 24)
+    cLabel.BackgroundTransparency = 1
+    cLabel.Font = Theme.FontRegular
+    cLabel.Text = contentText
+    cLabel.TextColor3 = Theme.TextMuted
+    cLabel.TextSize = 10
+    cLabel.TextWrapped = true
+    cLabel.TextXAlignment = Enum.TextXAlignment.Left
+    cLabel.TextYAlignment = Enum.TextYAlignment.Top
+    cLabel.Parent = card
+
+    -- Inset Rounded Progress Capsule (Zero Corner Leakage!)
+    local pBarHolder = Instance.new("Frame")
+    pBarHolder.Name = "ProgressBarHolder"
+    pBarHolder.Size = UDim2.new(1, -24, 0, 3)
+    pBarHolder.Position = UDim2.new(0.5, 0, 1, -6)
+    pBarHolder.AnchorPoint = Vector2.new(0.5, 0.5)
+    pBarHolder.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
+    pBarHolder.BackgroundTransparency = 0.5
+    pBarHolder.BorderSizePixel = 0
+    pBarHolder.ClipsDescendants = true
+    addCorner(pBarHolder, 2)
+    pBarHolder.Parent = card
+
+    local pBar = Instance.new("Frame")
+    pBar.Name = "ProgressBar"
+    pBar.Size = UDim2.new(1, 0, 1, 0)
+    pBar.BackgroundColor3 = nColor
+    pBar.BorderSizePixel = 0
+    addCorner(pBar, 2)
+    if nType == "info" then
+        local pbGrad = Instance.new("UIGradient")
+        pbGrad.Color = Theme.AccentGradient
+        pbGrad.Parent = pBar
+    end
+    pBar.Parent = pBarHolder
+
+    card.Position = UDim2.new(1, 320, 0, 0)
+    card.Parent = notifyHolder
+
+    makeTween(card, 0.3, { Position = UDim2.new(0, 0, 0, 0) })
+    makeTween(pBar, duration, { Size = UDim2.new(0, 0, 1, 0) }, Enum.EasingStyle.Linear)
+
+    task.delay(duration, function()
+        local tw = makeTween(card, 0.25, { Position = UDim2.new(1, 320, 0, 0) })
+        tw.Completed:Connect(function()
+            card:Destroy()
+        end)
+    end)
+end
+
+--==================================================
+-- WINDOW CREATION
+--==================================================
+function DiceUI:CreateWindow(cfg: {
+    Title: string?,
+    SubTitle: string?,
+    Size: UDim2?,
+    ToggleKey: Enum.KeyCode?,
+    MobileToggle: boolean?
+})
+    local guiParent = getSafeGuiParent()
+    local existing = guiParent:FindFirstChild("DiceUI_Hub")
+    if existing then existing:Destroy() end
+
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "DiceUI_Hub"
+    screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.Parent = guiParent
+    DiceUI._activeGui = screenGui
+
+    local title = cfg.Title or "DICEHUB"
+    local subTitle = cfg.SubTitle or "Universal Suite • v3.0 PRO"
+    local defaultSize = cfg.Size or UDim2.new(0, 720, 0, 460)
+    local toggleKey = cfg.ToggleKey or Enum.KeyCode.RightControl
+    local showMobileToggle = cfg.MobileToggle ~= false
+
+    -- Mobile Viewport Adaptive Sizing
+    local camera = workspace.CurrentCamera
+    local viewport = camera and camera.ViewportSize or Vector2.new(1280, 720)
+    local isMobile = (viewport.X < 800) or (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
+
+    -- Subtle Ambient Neon Purple Halo (Soft diffuse aura behind MainWindow)
+    local outerGlow = Instance.new("ImageLabel")
+    outerGlow.Name = "OuterGlow"
+    outerGlow.Size = isMobile and UDim2.new(0.92, 48, 0.86, 48) or UDim2.new(defaultSize.X.Scale, defaultSize.X.Offset + 48, defaultSize.Y.Scale, defaultSize.Y.Offset + 48)
+    outerGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
+    outerGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+    outerGlow.BackgroundTransparency = 1
+    outerGlow.BorderSizePixel = 0
+    outerGlow.Image = "rbxassetid://6015897843"
+    outerGlow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    outerGlow.ImageTransparency = 0.55
+    outerGlow.ScaleType = Enum.ScaleType.Slice
+    outerGlow.SliceCenter = Rect.new(48, 48, 464, 464)
+    outerGlow.ZIndex = 1
+    outerGlow.Parent = screenGui
+
+    -- Window Frame (Deep Obsidian Velvet Acrylic Glass using Frame for 100% Crisp Vector Text Rendering!)
+    local main = Instance.new("Frame")
+    main.Name = "MainWindow"
+    main.Size = isMobile and UDim2.new(0.92, 0, 0.86, 0) or defaultSize
+    main.Position = UDim2.new(0.5, 0, 0.5, 0)
+    main.AnchorPoint = Vector2.new(0.5, 0.5)
+    main.BackgroundColor3 = Theme.MainBg
+    main.BackgroundTransparency = Theme.MainBgTransparency
+    main.BorderSizePixel = 0
+    main.ClipsDescendants = false
+    main.ZIndex = 2
+    addCorner(main, 14)
+
+    local mainScale = Instance.new("UIScale")
+    mainScale.Name = "WindowScale"
+    mainScale.Scale = 1
+    mainScale.Parent = main
+
+    -- Dynamic Sync: outerGlow tracks MainWindow's Position, Size, and Visibility
+    local function syncOuterGlow()
+        outerGlow.Position = main.Position
+        outerGlow.Size = UDim2.new(main.Size.X.Scale, main.Size.X.Offset + 48, main.Size.Y.Scale, main.Size.Y.Offset + 48)
+        outerGlow.Visible = main.Visible
+    end
+    local gConn1 = main:GetPropertyChangedSignal("Position"):Connect(syncOuterGlow)
+    local gConn2 = main:GetPropertyChangedSignal("Size"):Connect(syncOuterGlow)
+    local gConn3 = main:GetPropertyChangedSignal("Visible"):Connect(syncOuterGlow)
+    table.insert(DiceUI._connections, gConn1)
+    table.insert(DiceUI._connections, gConn2)
+    table.insert(DiceUI._connections, gConn3)
+    syncOuterGlow()
+
+    -- Glowing Neon Purple / Cyber Amethyst Glass Border with Animated Multi-Stop Flow
+    local mainStroke = addStroke(main, Color3.fromRGB(255, 255, 255), 1.5, 0.25)
+    local strokeGrad = Instance.new("UIGradient")
+    strokeGrad.Color = Theme.FlowingGradient
+    strokeGrad.Rotation = 45
+    strokeGrad.Enabled = false
+    mainStroke.Color = Theme.Border
+    mainStroke.Thickness = 1
+    mainStroke.Transparency = 0.1
+    strokeGrad.Parent = mainStroke
+
+    main.Parent = screenGui
+
+    -- Top Header Bar (Draggable, Height 48px)
+    local header = Instance.new("Frame")
+    header.Name = "Header"
+    header.Size = UDim2.new(1, 0, 0, 48)
+    header.BackgroundColor3 = Theme.HeaderBg
+    header.BackgroundTransparency = Theme.HeaderBgTransparency
+    addCorner(header, 14)
+    header.Parent = main
+
+    -- Flat bottom filler so Header bottom edge is straight and aligns with Sidebar
+    local headerFlatBottom = Instance.new("Frame")
+    headerFlatBottom.Name = "HeaderFlatBottom"
+    headerFlatBottom.Size = UDim2.new(1, 0, 0, 14)
+    headerFlatBottom.Position = UDim2.new(0, 0, 1, -14)
+    headerFlatBottom.BackgroundTransparency = 1
+    headerFlatBottom.BorderSizePixel = 0
+    headerFlatBottom.ZIndex = header.ZIndex
+    headerFlatBottom.Parent = header
+
+    local hfbLeft = Instance.new("Frame")
+    hfbLeft.Name = "CornerLeft"
+    hfbLeft.Size = UDim2.new(0, 14, 0, 14)
+    hfbLeft.Position = UDim2.new(0, 0, 0, 0)
+    hfbLeft.BackgroundColor3 = Theme.HeaderBg
+    hfbLeft.BackgroundTransparency = Theme.HeaderBgTransparency
+    hfbLeft.BorderSizePixel = 0
+    hfbLeft.ZIndex = header.ZIndex
+    hfbLeft.Parent = headerFlatBottom
+
+    local hfbRight = Instance.new("Frame")
+    hfbRight.Name = "CornerRight"
+    hfbRight.Size = UDim2.new(0, 14, 0, 14)
+    hfbRight.Position = UDim2.new(1, -14, 0, 0)
+    hfbRight.BackgroundColor3 = Theme.HeaderBg
+    hfbRight.BackgroundTransparency = Theme.HeaderBgTransparency
+    hfbRight.BorderSizePixel = 0
+    hfbRight.ZIndex = header.ZIndex
+    hfbRight.Parent = headerFlatBottom
+
+    -- Header Top Highlight (Glass Specular Rim with Animated Flowing Gradient)
+    local specLine = Instance.new("Frame")
+    specLine.Size = UDim2.new(1, -20, 0, 1)
+    specLine.Position = UDim2.new(0, 10, 0, 0)
+    specLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    specLine.BackgroundTransparency = 0.82
+    specLine.BorderSizePixel = 0
+    specLine.Visible = false
+    specLine.Parent = header
+
+    local specGrad = Instance.new("UIGradient")
+    specGrad.Color = Theme.FlowingGradient
+    specGrad.Parent = specLine
+
+    -- Header Bottom Separator Line
+    local headerLine = Instance.new("Frame")
+    headerLine.Size = UDim2.new(1, 0, 0, 1)
+    headerLine.Position = UDim2.new(0, 0, 1, -1)
+    headerLine.BackgroundColor3 = Theme.Border
+    headerLine.BackgroundTransparency = Theme.BorderTransparency
+    headerLine.BorderSizePixel = 0
+    headerLine.ZIndex = header.ZIndex + 1
+    headerLine.Parent = header
+
+    -- Brand Logo Badge (32x32px - Pure Obsidian Black background seamlessly blends dice texture)
+    local logoHolder = Instance.new("Frame")
+    logoHolder.Name = "LogoHolder"
+    logoHolder.Size = UDim2.new(0, 32, 0, 32)
+    logoHolder.Position = UDim2.new(0, 12, 0.5, 0)
+    logoHolder.AnchorPoint = Vector2.new(0, 0.5)
+    logoHolder.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    logoHolder.BackgroundTransparency = 0.0
+    addCorner(logoHolder, 8)
+    addStroke(logoHolder, Theme.Accent, 1, 0.4)
+    logoHolder.Parent = header
+
+    local brandLogo = Instance.new("ImageLabel")
+    brandLogo.Name = "BrandLogo"
+    brandLogo.Size = UDim2.new(0, 24, 0, 24)
+    brandLogo.Position = UDim2.new(0.5, 0, 0.5, 0)
+    brandLogo.AnchorPoint = Vector2.new(0.5, 0.5)
+    brandLogo.BackgroundTransparency = 1
+    applyDiceLogo(brandLogo)
+    brandLogo.Parent = logoHolder
+
+    -- Brand Title & Subtitle (3D Physical Extruded Depth + Metallic Light Sweep Sheen)
+    local brandTitleShadow = Instance.new("TextLabel")
+    brandTitleShadow.Name = "BrandTitleShadow"
+    brandTitleShadow.Size = UDim2.new(0, 140, 0, 18)
+    brandTitleShadow.Position = UDim2.new(0, 53.5, 0, 8.5)
+    brandTitleShadow.BackgroundTransparency = 1
+    brandTitleShadow.Font = Theme.FontBold
+    brandTitleShadow.Text = title
+    brandTitleShadow.TextColor3 = Color3.fromRGB(10, 8, 16)
+    brandTitleShadow.TextSize = 14
+    brandTitleShadow.TextXAlignment = Enum.TextXAlignment.Left
+    brandTitleShadow.ZIndex = 1
+    brandTitleShadow.Parent = header
+
+    local brandTitle = Instance.new("TextLabel")
+    brandTitle.Name = "BrandTitle"
+    brandTitle.Size = UDim2.new(0, 140, 0, 18)
+    brandTitle.Position = UDim2.new(0, 52, 0, 7)
+    brandTitle.BackgroundTransparency = 1
+    brandTitle.Font = Theme.FontBold
+    brandTitle.Text = title
+    brandTitle.TextColor3 = Theme.TextTitle
+    brandTitle.TextSize = 14
+    brandTitle.TextXAlignment = Enum.TextXAlignment.Left
+    brandTitle.ZIndex = 2
+    brandTitle.Parent = header
+
+    -- 3D Beveled Outline
+    local titleStroke = Instance.new("UIStroke")
+    titleStroke.Name = "TitleStroke"
+    titleStroke.Thickness = 0.8
+    titleStroke.Color = Color3.fromRGB(24, 20, 36)
+    titleStroke.Transparency = 0.25
+    titleStroke.Parent = brandTitle
+
+    -- Animated Metallic Light Sweep Sheen Gradient
+    local titleShine = Instance.new("UIGradient")
+    titleShine.Name = "TitleShine"
+    titleShine.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(225, 230, 240)),
+        ColorSequenceKeypoint.new(0.38, Color3.fromRGB(225, 230, 240)),
+        ColorSequenceKeypoint.new(0.48, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(0.54, Color3.fromRGB(235, 215, 255)),
+        ColorSequenceKeypoint.new(0.64, Color3.fromRGB(225, 230, 240)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(225, 230, 240))
+    })
+    titleShine.Rotation = 15
+    titleShine.Offset = Vector2.new(-1.2, 0)
+    titleShine.Parent = brandTitle
+
+    local titleShineThread = task.spawn(function()
+        while titleShine and titleShine.Parent do
+            titleShine.Offset = Vector2.new(-1.2, 0)
+            local tw = TweenService:Create(titleShine, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {
+                Offset = Vector2.new(1.2, 0)
+            })
+            tw:Play()
+            tw.Completed:Wait()
+            task.wait(2.8)
+        end
+    end)
+    table.insert(DiceUI._connections, { Disconnect = function() pcall(task.cancel, titleShineThread) end })
+
+    local brandSub = Instance.new("TextLabel")
+    brandSub.Name = "BrandSubtitle"
+    brandSub.Size = UDim2.new(0, 140, 0, 14)
+    brandSub.Position = UDim2.new(0, 52, 0, 25)
+    brandSub.BackgroundTransparency = 1
+    brandSub.Font = Theme.FontMedium
+    brandSub.Text = subTitle
+    brandSub.TextColor3 = Theme.Accent
+    brandSub.TextSize = 9
+    brandSub.TextXAlignment = Enum.TextXAlignment.Left
+    brandSub.Parent = header
+
+    -- Right Header Container (Telemetry + Controls docked at far right corner)
+    local rightHeader = Instance.new("Frame")
+    rightHeader.BorderSizePixel = 0
+    rightHeader.Name = "RightHeader"
+    rightHeader.Size = UDim2.new(0, 213, 0, 28)
+    rightHeader.Position = UDim2.new(1, -12, 0.5, 0)
+    rightHeader.AnchorPoint = Vector2.new(1, 0.5)
+    rightHeader.BackgroundTransparency = 1
+    rightHeader.Parent = header
+
+    local rightLayout = Instance.new("UIListLayout")
+    rightLayout.FillDirection = Enum.FillDirection.Horizontal
+    rightLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+    rightLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    rightLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    rightLayout.Padding = UDim.new(0, 8)
+    rightLayout.Parent = rightHeader
+
+    -- Live Telemetry Status Pill (FPS & Ping) - Left of controls
+    local telemetryPill = Instance.new("Frame")
+    telemetryPill.Name = "TelemetryPill"
+    telemetryPill.Size = UDim2.new(0, 115, 0, 24)
+    telemetryPill.BackgroundColor3 = Theme.CardBg
+    telemetryPill.BackgroundTransparency = 0.4
+    addCorner(telemetryPill, 6)
+    addStroke(telemetryPill, Theme.Border, 1, 0.6)
+    telemetryPill.LayoutOrder = 1
+    telemetryPill.Parent = rightHeader
+
+    local telemDot = Instance.new("Frame")
+    telemDot.Size = UDim2.new(0, 6, 0, 6)
+    telemDot.Position = UDim2.new(0, 8, 0.5, 0)
+    telemDot.AnchorPoint = Vector2.new(0, 0.5)
+    telemDot.BackgroundColor3 = Theme.Success
+    addCorner(telemDot, 3)
+    telemDot.Parent = telemetryPill
+
+    local telemLabel = Instance.new("TextLabel")
+    telemLabel.Size = UDim2.new(1, -20, 1, 0)
+    telemLabel.Position = UDim2.new(0, 20, 0, 0)
+    telemLabel.BackgroundTransparency = 1
+    telemLabel.Font = Theme.FontMedium
+    telemLabel.Text = "60 FPS • 35ms"
+    telemLabel.TextColor3 = Theme.TextMuted
+    telemLabel.TextSize = 10
+    telemLabel.TextXAlignment = Enum.TextXAlignment.Left
+    telemLabel.Parent = telemetryPill
+
+    -- Live Telemetry Updater & Continuous 60 FPS Flowing Gradient Rotation Loop
+    local fpsCount = 0
+    local lastFpsUpdate = tick()
+    local telemConn = RunService.RenderStepped:Connect(function(dt)
+        local delta = dt * 35
+        strokeGrad.Rotation = (strokeGrad.Rotation + delta) % 360
+        if specGrad then
+            specGrad.Rotation = (specGrad.Rotation + delta * 1.5) % 360
+        end
+
+        fpsCount = fpsCount + 1
+        local now = tick()
+        if now - lastFpsUpdate >= 1 then
+            local fps = math.floor(fpsCount / (now - lastFpsUpdate))
+            fpsCount = 0
+            lastFpsUpdate = now
+            local ping = 0
+            pcall(function()
+                local stat = game:GetService("Stats")
+                ping = math.floor(stat.Network.ServerStatsItem["Data Ping"]:GetValue())
+            end)
+            telemLabel.Text = string.format("%d FPS • %dms", fps, ping)
+            if fps < 30 or ping > 180 then
+                telemDot.BackgroundColor3 = Theme.Warning
+            else
+                telemDot.BackgroundColor3 = Theme.Success
+            end
+        end
+    end)
+    table.insert(DiceUI._connections, telemConn)
+
+    -- Window Controls Container (Docked at Far Right: [☰ Sidebar] [— Minimize] [✕ Close])
+    local controls = Instance.new("Frame")
+    controls.BorderSizePixel = 0
+    controls.Name = "Controls"
+    controls.Size = UDim2.new(0, 90, 0, 26)
+    controls.BackgroundTransparency = 1
+    controls.LayoutOrder = 2
+    controls.Parent = rightHeader
+
+    local controlLayout = Instance.new("UIListLayout")
+    controlLayout.FillDirection = Enum.FillDirection.Horizontal
+    controlLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+    controlLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    controlLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    controlLayout.Padding = UDim.new(0, 6)
+    controlLayout.Parent = controls
+
+    -- 1. Sidebar Collapse Toggle Button
+    local sideToggleBtn = Instance.new("TextButton")
+    sideToggleBtn.Name = "SideToggleBtn"
+    sideToggleBtn.Size = UDim2.new(0, 26, 0, 26)
+    sideToggleBtn.BackgroundColor3 = Theme.CardBg
+    sideToggleBtn.BackgroundTransparency = 0.5
+    sideToggleBtn.Text = ""
+    sideToggleBtn.AutoButtonColor = false
+    sideToggleBtn.LayoutOrder = 1
+    addCorner(sideToggleBtn, 6)
+    local sideStroke = addStroke(sideToggleBtn, Theme.Border, 1, 0.75)
+    sideToggleBtn.Parent = controls
+
+    local sideToggleIcon = Instance.new("ImageLabel")
+    sideToggleIcon.Size = UDim2.new(0, 14, 0, 14)
+    sideToggleIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+    sideToggleIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+    sideToggleIcon.BackgroundTransparency = 1
+    sideToggleIcon.Image = Icons.Menu
+    sideToggleIcon.ImageColor3 = Theme.TextBody
+    sideToggleIcon.Parent = sideToggleBtn
+
+    sideToggleBtn.MouseEnter:Connect(function()
+        makeTween(sideToggleBtn, 0.15, { BackgroundTransparency = 0.25, BackgroundColor3 = Theme.CardBgHover })
+        makeTween(sideStroke, 0.15, { Color = Theme.Accent, Transparency = 0.4 })
+    end)
+    sideToggleBtn.MouseLeave:Connect(function()
+        makeTween(sideToggleBtn, 0.15, { BackgroundTransparency = 0.5, BackgroundColor3 = Theme.CardBg })
+        makeTween(sideStroke, 0.15, { Color = Theme.Border, Transparency = 0.75 })
+    end)
+
+    -- 2. Minimize Button
+    local minBtn = Instance.new("TextButton")
+    minBtn.Name = "MinBtn"
+    minBtn.Size = UDim2.new(0, 26, 0, 26)
+    minBtn.BackgroundColor3 = Theme.CardBg
+    minBtn.BackgroundTransparency = 0.5
+    minBtn.Text = ""
+    minBtn.AutoButtonColor = false
+    minBtn.LayoutOrder = 2
+    addCorner(minBtn, 6)
+    local minStroke = addStroke(minBtn, Theme.Border, 1, 0.75)
+    minBtn.Parent = controls
+
+    local minIcon = Instance.new("ImageLabel")
+    minIcon.Size = UDim2.new(0, 12, 0, 12)
+    minIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+    minIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+    minIcon.BackgroundTransparency = 1
+    minIcon.Image = Icons.Minimize
+    minIcon.ImageColor3 = Theme.TextBody
+    minIcon.Parent = minBtn
+
+    minBtn.MouseEnter:Connect(function()
+        makeTween(minBtn, 0.15, { BackgroundTransparency = 0.25, BackgroundColor3 = Theme.CardBgHover })
+        makeTween(minStroke, 0.15, { Color = Theme.Accent, Transparency = 0.4 })
+    end)
+    minBtn.MouseLeave:Connect(function()
+        makeTween(minBtn, 0.15, { BackgroundTransparency = 0.5, BackgroundColor3 = Theme.CardBg })
+        makeTween(minStroke, 0.15, { Color = Theme.Border, Transparency = 0.75 })
+    end)
+
+    -- 3. Close Button (Docked at Far Right Corner with Red Glow Hover)
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Name = "CloseBtn"
+    closeBtn.Size = UDim2.new(0, 26, 0, 26)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(42, 18, 24)
+    closeBtn.BackgroundTransparency = 0.4
+    closeBtn.Text = ""
+    closeBtn.AutoButtonColor = false
+    closeBtn.LayoutOrder = 3
+    addCorner(closeBtn, 6)
+    local closeStroke = addStroke(closeBtn, Theme.Danger, 1, 0.6)
+    closeBtn.Parent = controls
+
+    local closeIcon = Instance.new("ImageLabel")
+    closeIcon.Size = UDim2.new(0, 12, 0, 12)
+    closeIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+    closeIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+    closeIcon.BackgroundTransparency = 1
+    closeIcon.Image = Icons.Close
+    closeIcon.ImageColor3 = Color3.fromRGB(255, 180, 190)
+    closeIcon.Parent = closeBtn
+
+    closeBtn.MouseEnter:Connect(function()
+        makeTween(closeBtn, 0.18, { BackgroundColor3 = Theme.Danger, BackgroundTransparency = 0.1 })
+        makeTween(closeStroke, 0.18, { Color = Theme.Danger, Transparency = 0.1 })
+        makeTween(closeIcon, 0.18, { ImageColor3 = Color3.fromRGB(255, 255, 255) })
+    end)
+    closeBtn.MouseLeave:Connect(function()
+        makeTween(closeBtn, 0.18, { BackgroundColor3 = Color3.fromRGB(42, 18, 24), BackgroundTransparency = 0.4 })
+        makeTween(closeStroke, 0.18, { Color = Theme.Danger, Transparency = 0.6 })
+        makeTween(closeIcon, 0.18, { ImageColor3 = Color3.fromRGB(255, 180, 190) })
+    end)
+
+    -- Body Container
+    local body = Instance.new("Frame")
+    body.BorderSizePixel = 0
+    body.Name = "Body"
+    body.Size = UDim2.new(1, 0, 1, -48)
+    body.Position = UDim2.new(0, 0, 0, 48)
+    body.BackgroundTransparency = 1
+    body.Parent = main
+
+    -- Sidebar (Category Navigation)
+    local sidebarWidthFull = 160
+    local sidebarWidthCompact = 48
+    local sidebarExpanded = true
+
+    local sidebar = Instance.new("Frame")
+    sidebar.Name = "Sidebar"
+    sidebar.Size = UDim2.new(0, sidebarWidthFull, 1, 0)
+    sidebar.BackgroundColor3 = Theme.SidebarBg
+    sidebar.BackgroundTransparency = Theme.SidebarBgTransparency
+    sidebar.BorderSizePixel = 0
+    sidebar.ClipsDescendants = true
+    addCorner(sidebar, 14)
+    sidebar.Parent = body
+
+    -- Top & right fillers so only bottom-left corner curves to match MainWindow 14px curvature
+    local sidebarTopFiller = Instance.new("Frame")
+    sidebarTopFiller.Name = "SidebarTopFiller"
+    sidebarTopFiller.Size = UDim2.new(1, 0, 0, 14)
+    sidebarTopFiller.Position = UDim2.new(0, 0, 0, 0)
+    sidebarTopFiller.BackgroundColor3 = Theme.SidebarBg
+    sidebarTopFiller.BackgroundTransparency = Theme.SidebarBgTransparency
+    sidebarTopFiller.BorderSizePixel = 0
+    sidebarTopFiller.Parent = sidebar
+
+    local sidebarRightFiller = Instance.new("Frame")
+    sidebarRightFiller.Name = "SidebarRightFiller"
+    sidebarRightFiller.Size = UDim2.new(0, 14, 1, 0)
+    sidebarRightFiller.Position = UDim2.new(1, -14, 0, 0)
+    sidebarRightFiller.BackgroundColor3 = Theme.SidebarBg
+    sidebarRightFiller.BackgroundTransparency = Theme.SidebarBgTransparency
+    sidebarRightFiller.BorderSizePixel = 0
+    sidebarRightFiller.Parent = sidebar
+
+    local sidebarSep = Instance.new("Frame")
+    sidebarSep.Size = UDim2.new(0, 1, 1, 0)
+    sidebarSep.Position = UDim2.new(1, -1, 0, 0)
+    sidebarSep.BackgroundColor3 = Theme.Border
+    sidebarSep.BackgroundTransparency = Theme.BorderTransparency
+    sidebarSep.BorderSizePixel = 0
+    sidebarSep.ZIndex = sidebar.ZIndex + 1
+    sidebarSep.Parent = sidebar
+
+    local tabScroll = Instance.new("ScrollingFrame")
+    tabScroll.BorderSizePixel = 0
+    tabScroll.Name = "TabScroll"
+    tabScroll.Size = UDim2.new(1, 0, 1, -56)
+    tabScroll.Position = UDim2.new(0, 0, 0, 6)
+    tabScroll.BackgroundTransparency = 1
+    tabScroll.ScrollBarThickness = 2
+    tabScroll.ScrollBarImageColor3 = Theme.Border
+    tabScroll.ScrollingEnabled = true
+    tabScroll.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
+    tabScroll.ScrollingDirection = Enum.ScrollingDirection.Y
+    tabScroll.Selectable = false
+    tabScroll.AutomaticCanvasSize = Enum.AutomaticSize.None
+    tabScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    tabScroll.Active = true
+    tabScroll.Parent = sidebar
+
+    local tabLayout = Instance.new("UIListLayout")
+    tabLayout.Padding = UDim.new(0, 4)
+    tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    tabLayout.Parent = tabScroll
+    addPadding(tabScroll, 0, 6, 6, 6)
+
+    local function updateTabScroll()
+        tabScroll.CanvasSize = UDim2.new(0, 0, 0, tabLayout.AbsoluteContentSize.Y + 20)
+    end
+    local tConn = tabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateTabScroll)
+    table.insert(DiceUI._connections, tConn)
+    task.defer(updateTabScroll)
+
+    -- Sidebar Footer (User Profile Card)
+    local sideFooter = Instance.new("Frame")
+    sideFooter.Name = "SidebarFooter"
+    sideFooter.Size = UDim2.new(1, -12, 0, 38)
+    sideFooter.Position = UDim2.new(0, 6, 1, -44)
+    sideFooter.BackgroundColor3 = Theme.CardBg
+    sideFooter.BackgroundTransparency = 0.4
+    addCorner(sideFooter, 6)
+    addStroke(sideFooter, Theme.Border, 1, 0.7)
+    sideFooter.Parent = sidebar
+
+    local userAvatar = Instance.new("ImageLabel")
+    userAvatar.Size = UDim2.new(0, 26, 0, 26)
+    userAvatar.Position = UDim2.new(0, 9, 0.5, 0)
+    userAvatar.AnchorPoint = Vector2.new(0, 0.5)
+    userAvatar.BackgroundTransparency = 1
+    userAvatar.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+    addCorner(userAvatar, 13)
+    userAvatar.Parent = sideFooter
+
+    local userStatusDot = Instance.new("Frame")
+    userStatusDot.Size = UDim2.new(0, 6, 0, 6)
+    userStatusDot.Position = UDim2.new(1, -1, 1, -1)
+    userStatusDot.AnchorPoint = Vector2.new(1, 1)
+    userStatusDot.BackgroundColor3 = Theme.Success
+    addCorner(userStatusDot, 3)
+    userStatusDot.Parent = userAvatar
+
+    local userName = Instance.new("TextLabel")
+    userName.Name = "UserName"
+    userName.Size = UDim2.new(1, -52, 0, 14)
+    userName.Position = UDim2.new(0, 46, 0, 4)
+    userName.BackgroundTransparency = 1
+    userName.Font = Theme.FontBold
+    userName.Text = LocalPlayer.DisplayName
+    userName.TextColor3 = Theme.TextTitle
+    userName.TextSize = 10
+    userName.TextXAlignment = Enum.TextXAlignment.Left
+    userName.TextTruncate = Enum.TextTruncate.AtEnd
+    userName.Parent = sideFooter
+
+    local userStatusLbl = Instance.new("TextLabel")
+    userStatusLbl.Name = "UserStatus"
+    userStatusLbl.Size = UDim2.new(1, -52, 0, 12)
+    userStatusLbl.Position = UDim2.new(0, 46, 0, 18)
+    userStatusLbl.BackgroundTransparency = 1
+    userStatusLbl.Font = Theme.FontMedium
+    userStatusLbl.Text = "● Online"
+    userStatusLbl.TextColor3 = Theme.Success
+    userStatusLbl.TextSize = 9
+    userStatusLbl.TextXAlignment = Enum.TextXAlignment.Left
+    userStatusLbl.Parent = sideFooter
+
+    -- Content Area (Pages Container)
+    local contentArea = Instance.new("Frame")
+    contentArea.BorderSizePixel = 0
+    contentArea.Name = "ContentArea"
+    contentArea.Size = UDim2.new(1, -sidebarWidthFull, 1, 0)
+    contentArea.Position = UDim2.new(0, sidebarWidthFull, 0, 0)
+    contentArea.BackgroundTransparency = 1
+    contentArea.ClipsDescendants = true
+    contentArea.Parent = body
+
+    -- Window Object Definition
+    local Window = {
+        _gui = screenGui,
+        _main = main,
+        _body = body,
+        _sidebar = sidebar,
+        _contentArea = contentArea,
+        _tabs = {},
+        _categories = {},
+        _categoryFrames = {},
+        _activeTab = nil,
+        _isMinimized = false,
+        _visible = true,
+        _sidebarExpanded = sidebarExpanded,
+        _lastSavedPos = main.Position,
+        _floatBtn = nil :: ImageButton?
+    }
+    table.insert(DiceUI.Windows, Window)
+
+    local function adaptActiveTab()
+        if Window._activeTab and Window._activeTab._adapt then
+            Window._activeTab._adapt()
+        end
+    end
+
+    --==================================================
+    -- WINDUI-STYLE PERIMETER DRAG EDGES (PC & MOBILE TOUCH)
+    -- Makes entire outer frame borders draggable
+    --==================================================
+    local dragLeft = Instance.new("Frame")
+    dragLeft.Name = "DragEdgeLeft"
+    dragLeft.Size = UDim2.new(0, 8, 1, -70)
+    dragLeft.Position = UDim2.new(0, 0, 0, 48)
+    dragLeft.BackgroundTransparency = 1
+    dragLeft.BorderSizePixel = 0
+    dragLeft.Active = true
+    dragLeft.ZIndex = 25
+    dragLeft.Parent = main
+
+    local dragRight = Instance.new("Frame")
+    dragRight.Name = "DragEdgeRight"
+    dragRight.Size = UDim2.new(0, 8, 1, -80) -- Leaves room for corner resize grip
+    dragRight.Position = UDim2.new(1, -8, 0, 48)
+    dragRight.BackgroundTransparency = 1
+    dragRight.BorderSizePixel = 0
+    dragRight.Active = true
+    dragRight.ZIndex = 25
+    dragRight.Parent = main
+
+    local dragBottom = Instance.new("Frame")
+    dragBottom.Name = "DragEdgeBottom"
+    dragBottom.Size = UDim2.new(1, -60, 0, 12)
+    dragBottom.Position = UDim2.new(0, 20, 1, -12)
+    dragBottom.BackgroundTransparency = 1
+    dragBottom.BorderSizePixel = 0
+    dragBottom.Active = true
+    dragBottom.ZIndex = 25
+    dragBottom.Parent = main
+
+    -- Signature WindUI Bottom Drag Bar Indicator (Floats Outside Below Main Window)
+    local bottomDragBar = Instance.new("Frame")
+    bottomDragBar.Name = "BottomDragBar"
+    bottomDragBar.Size = UDim2.new(0, 76, 0, 4)
+    bottomDragBar.Position = UDim2.new(0.5, 0, 1, 6)
+    bottomDragBar.AnchorPoint = Vector2.new(0.5, 0)
+    bottomDragBar.BackgroundColor3 = Theme.Accent
+    bottomDragBar.BackgroundTransparency = 0.4
+    bottomDragBar.BorderSizePixel = 0
+    bottomDragBar.Active = true
+    bottomDragBar.ZIndex = 30
+    addCorner(bottomDragBar, 3)
+
+    -- Soft neon stroke around the drag pill for luminous 3D effect
+    local bBarStroke = Instance.new("UIStroke")
+    bBarStroke.Name = "BarStroke"
+    bBarStroke.Color = Color3.fromRGB(217, 70, 239)
+    bBarStroke.Thickness = 1.2
+    bBarStroke.Transparency = 0.6
+    bBarStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    bBarStroke.Parent = bottomDragBar
+    bottomDragBar.Parent = main
+
+    bottomDragBar.MouseEnter:Connect(function()
+        makeTween(bottomDragBar, 0.15, { BackgroundTransparency = 0.1, Size = UDim2.new(0, 96, 0, 5) })
+        makeTween(bBarStroke, 0.15, { Transparency = 0.2 })
+    end)
+    bottomDragBar.MouseLeave:Connect(function()
+        makeTween(bottomDragBar, 0.15, { BackgroundTransparency = 0.4, Size = UDim2.new(0, 76, 0, 4) })
+        makeTween(bBarStroke, 0.15, { Transparency = 0.6 })
+    end)
+
+    -- Attach Drag Engine to Header, Edges, and Bottom Bar
+    makeDraggable(header, main, DiceUI._connections)
+    makeDraggable(dragLeft, main, DiceUI._connections)
+    makeDraggable(dragRight, main, DiceUI._connections)
+    makeDraggable(dragBottom, main, DiceUI._connections)
+    makeDraggable(bottomDragBar, main, DiceUI._connections)
+
+    --==================================================
+    -- WINDUI-STYLE CORNER RESIZE HANDLE (PC & MOBILE TOUCH)
+    -- Authentic WindUI curved corner arc using official asset rbxassetid://120997033468887
+    --==================================================
+    local resizeHandle = Instance.new("Frame")
+    resizeHandle.Name = "ResizeHandle"
+    resizeHandle.Size = UDim2.fromOffset(32, 32)
+    resizeHandle.Position = UDim2.new(1, 0, 1, 0)
+    resizeHandle.AnchorPoint = Vector2.new(0.5, 0.5)
+    resizeHandle.BackgroundTransparency = 1
+    resizeHandle.BorderSizePixel = 0
+    resizeHandle.Active = true
+    resizeHandle.ZIndex = 50
+    resizeHandle.Parent = main
+
+    -- Curved Corner Arc (WindUI Signature Asset)
+    local resizeArc = Instance.new("ImageLabel")
+    resizeArc.Name = "ResizeArc"
+    resizeArc.Size = UDim2.new(0, 48 * 2, 0, 48 * 2)
+    resizeArc.Position = UDim2.new(0.5, -16, 0.5, -16)
+    resizeArc.AnchorPoint = Vector2.new(0.5, 0.5)
+    resizeArc.BackgroundTransparency = 1
+    resizeArc.BorderSizePixel = 0
+    resizeArc.Image = "rbxassetid://120997033468887"
+    resizeArc.ImageColor3 = Theme.Accent
+    resizeArc.ImageTransparency = 0.5
+    resizeArc.ZIndex = 50
+    resizeArc.Parent = resizeHandle
+
+    -- Resize Interaction Engine (PC Mouse & Touch Drag)
+    local isResizing = false
+    local resizeStartInputPos = Vector3.zero
+    local resizeStartSize = Vector2.new()
+
+    local rConn1 = resizeHandle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            isResizing = true
+            resizeStartInputPos = input.Position
+            resizeStartSize = Vector2.new(main.AbsoluteSize.X, main.AbsoluteSize.Y)
+            makeTween(resizeArc, 0.15, { ImageTransparency = 0.0 })
+            makeTween(bottomDragBar, 0.15, { BackgroundTransparency = 0.1 })
+        end
+    end)
+
+    local rConn2 = UserInputService.InputChanged:Connect(function(input)
+        if isResizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - resizeStartInputPos
+            local cam = workspace.CurrentCamera
+            local vp = cam and cam.ViewportSize or Vector2.new(1280, 720)
+            local minW = 460
+            local minH = 280
+            local maxW = math.max(minW, vp.X - 30)
+            local maxH = math.max(minH, vp.Y - 40)
+
+            local newW = math.clamp(resizeStartSize.X + delta.X, minW, maxW)
+            local newH = math.clamp(resizeStartSize.Y + delta.Y, minH, maxH)
+
+            main.Size = UDim2.fromOffset(newW, newH)
+            syncOuterGlow()
+            task.defer(adaptActiveTab)
+        end
+    end)
+
+    local rConn3 = UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if isResizing then
+                isResizing = false
+                makeTween(resizeArc, 0.15, { ImageTransparency = 0.5 })
+                makeTween(bottomDragBar, 0.15, { BackgroundTransparency = 0.4 })
+                task.defer(adaptActiveTab)
+            end
+        end
+    end)
+
+    resizeHandle.MouseEnter:Connect(function()
+        makeTween(resizeArc, 0.15, { ImageTransparency = 0.15 })
+    end)
+    resizeHandle.MouseLeave:Connect(function()
+        if not isResizing then
+            makeTween(resizeArc, 0.15, { ImageTransparency = 0.5 })
+        end
+    end)
+
+    table.insert(DiceUI._connections, rConn1)
+    table.insert(DiceUI._connections, rConn2)
+    table.insert(DiceUI._connections, rConn3)
+
+    -- Forward declaration for float button sync
+    local syncFloatButtonVisibility = function() end
+
+    -- Window Show/Hide Toggle (Preserves Last Position!)
+    local isToggling = false
+    function Window:Toggle()
+        if isToggling then return end
+        self._visible = not self._visible
+        if self._visible then
+            isToggling = true
+            main.Visible = true
+            outerGlow.Visible = true
+            mainScale.Scale = 0.92
+            outerGlow.ImageTransparency = 1
+            makeTween(mainScale, 0.22, { Scale = 1.0 }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            local tw = makeTween(outerGlow, 0.22, { ImageTransparency = 0.65 }, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            tw.Completed:Connect(function()
+                isToggling = false
+            end)
+        else
+            isToggling = true
+            makeTween(mainScale, 0.18, { Scale = 0.92 }, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+            local tw = makeTween(outerGlow, 0.18, { ImageTransparency = 1.0 }, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+            tw.Completed:Connect(function()
+                if not Window._visible then
+                    main.Visible = false
+                    outerGlow.Visible = false
+                    mainScale.Scale = 1.0
+                end
+                isToggling = false
+            end)
+        end
+        syncFloatButtonVisibility()
+    end
+
+    -- Toggle Sidebar Collapse Function
+    local function setSidebarExpanded(expanded: boolean)
+        Window._sidebarExpanded = expanded
+        local targetWidth = expanded and sidebarWidthFull or sidebarWidthCompact
+        makeTween(sidebar, 0.22, { Size = UDim2.new(0, targetWidth, 1, 0) })
+        makeTween(contentArea, 0.22, {
+            Size = UDim2.new(1, -targetWidth, 1, 0),
+            Position = UDim2.new(0, targetWidth, 0, 0)
+        })
+        for _, tab in ipairs(Window._tabs) do
+            if tab._label then
+                makeTween(tab._label, 0.18, { TextTransparency = expanded and 0 or 1 })
+            end
+            if tab._badge then
+                makeTween(tab._badge, 0.18, { BackgroundTransparency = expanded and 0.2 or 1 })
+                local bLbl = tab._badge:FindFirstChildOfClass("TextLabel")
+                if bLbl then
+                    makeTween(bLbl, 0.18, { TextTransparency = expanded and 0 or 1 })
+                end
+            end
+        end
+        for _, cat in ipairs(Window._categoryFrames) do
+            if cat.Label then
+                makeTween(cat.Label, 0.18, { TextTransparency = expanded and 0 or 1 })
+            end
+            if cat.Divider then
+                cat.Divider.Visible = not expanded
+            end
+        end
+        makeTween(userName, 0.18, { TextTransparency = expanded and 0 or 1 })
+        makeTween(userStatusLbl, 0.18, { TextTransparency = expanded and 0 or 1 })
+    end
+
+    sideToggleBtn.MouseButton1Click:Connect(function()
+        setSidebarExpanded(not Window._sidebarExpanded)
+    end)
+
+    -- Window Minimize Function
+    local lastUnminimizedSize = main.Size
+    local isMinimizing = false
+    minBtn.MouseButton1Click:Connect(function()
+        if isMinimizing then return end
+        isMinimizing = true
+        Window._isMinimized = not Window._isMinimized
+        if Window._isMinimized then
+            lastUnminimizedSize = main.Size
+            headerFlatBottom.Visible = false
+            headerLine.Visible = false
+            body.Visible = false
+            resizeHandle.Visible = false
+            bottomDragBar.Visible = false
+            dragBottom.Visible = false
+            dragLeft.Visible = false
+            dragRight.Visible = false
+            local tw = makeTween(main, 0.22, { Size = UDim2.new(lastUnminimizedSize.X.Scale, lastUnminimizedSize.X.Offset, 0, 48) })
+            minIcon.Image = Icons.ChevronDown
+            tw.Completed:Connect(function()
+                isMinimizing = false
+            end)
+        else
+            body.Visible = true
+            resizeHandle.Visible = true
+            bottomDragBar.Visible = true
+            dragBottom.Visible = true
+            dragLeft.Visible = true
+            dragRight.Visible = true
+            local tw = makeTween(main, 0.22, { Size = lastUnminimizedSize })
+            minIcon.Image = Icons.Minimize
+            tw.Completed:Connect(function()
+                if not Window._isMinimized then
+                    headerFlatBottom.Visible = true
+                    headerLine.Visible = true
+                end
+                isMinimizing = false
+                task.defer(adaptActiveTab)
+            end)
+        end
+    end)
+
+    -- Close Button with Tactile Press Animation
+    closeBtn.MouseButton1Click:Connect(function()
+        makeTween(closeBtn, 0.08, { BackgroundColor3 = Theme.Danger, BackgroundTransparency = 0.1 })
+        task.delay(0.12, function()
+            makeTween(closeBtn, 0.15, { BackgroundColor3 = Theme.CardBg, BackgroundTransparency = 0.5 })
+        end)
+        Window:Toggle()
+        DiceUI:Notify({
+            Title = "DiceHUB Universal",
+            Content = "UI Hidden. Tap docked button or press RightControl to restore.",
+            Duration = 2.5
+        })
+    end)
+
+    -- PC Keybind Toggle
+    local keyConn = UserInputService.InputBegan:Connect(function(input, gpe)
+        if not gpe and input.KeyCode == toggleKey then
+            Window:Toggle()
+        end
+    end)
+    table.insert(DiceUI._connections, keyConn)
+
+    -- Dynamic Screen Viewport Resizing Handler
+    local vpConn = camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+        local vp = camera.ViewportSize
+        local mobileNow = (vp.X < 800)
+        if mobileNow and Window._sidebarExpanded then
+            setSidebarExpanded(false)
+        end
+    end)
+    table.insert(DiceUI._connections, vpConn)
+
+    -- Global Click-Outside Handler to Close Dropdowns
+    local screenInputConn = UserInputService.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if DiceUI._activeDropdown then
+                local dd = DiceUI._activeDropdown
+                local mousePos = input.Position
+                local row = dd._row
+                if row then
+                    local absP = row.AbsolutePosition
+                    local absS = row.AbsoluteSize
+                    local inX = (mousePos.X >= absP.X and mousePos.X <= absP.X + absS.X)
+                    local inY = (mousePos.Y >= absP.Y and mousePos.Y <= absP.Y + absS.Y)
+                    if not (inX and inY) then
+                        dd:Close()
+                    end
+                end
+            end
+        end
+    end)
+    table.insert(DiceUI._connections, screenInputConn)
+
+    --==================================================
+    -- FLOATING MOBILE BUTTON (ANIMEDICE SQUIRCLE PILL, ROTATING NEON BORDER)
+    --==================================================
+    if showMobileToggle then
+        local floatBtn = Instance.new("ImageButton")
+        floatBtn.Name = "DiceFloatToggle"
+        floatBtn.Size = UDim2.fromOffset(52, 52)
+        -- Docked cleanly at the screen edge (left-center, 18px from edge)
+        floatBtn.Position = UDim2.new(0, 18, 0.5, -26)
+        -- MUST BE pure white (255, 255, 255) so minBgGrad renders true obsidian colors without darkening multiplication!
+        floatBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        floatBtn.BackgroundTransparency = Window._visible and 1 or 0
+        floatBtn.BorderSizePixel = 0
+        floatBtn.AutoButtonColor = false
+        floatBtn.ImageTransparency = 1
+        floatBtn.Active = true
+        -- Initially hidden when window is visible
+        floatBtn.Visible = not Window._visible
+        floatBtn.ZIndex = 2
+        addCorner(floatBtn, 16)
+
+        -- Seamless Pure Obsidian Void Background at 45° (Completely blends with dice image background - Zero square edge)
+        local minBgGrad = Instance.new("UIGradient")
+        minBgGrad.Name = "FloatBgGradient"
+        minBgGrad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.0, Color3.fromRGB(0, 0, 0)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 0, 0)),
+            ColorSequenceKeypoint.new(1.0, Color3.fromRGB(0, 0, 0))
+        })
+        minBgGrad.Rotation = 45
+        minBgGrad.Parent = floatBtn
+
+        -- Border Stroke: 2.2px thickness with animated rotating Royal Amethyst & White Neon gradient
+        local floatStroke = Instance.new("UIStroke")
+        floatStroke.Name = "FloatStroke"
+        floatStroke.Color = Color3.fromRGB(255, 255, 255)
+        floatStroke.Thickness = 2.2
+        floatStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        floatStroke.Transparency = Window._visible and 1 or 0
+        floatStroke.Parent = floatBtn
+
+        local floatStrokeGrad = Instance.new("UIGradient")
+        floatStrokeGrad.Name = "StrokeGradient"
+        floatStrokeGrad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.00, Color3.fromRGB(168, 85, 247)), -- Royal Purple (#a855f7)
+            ColorSequenceKeypoint.new(0.35, Color3.fromRGB(255, 255, 255)), -- Crisp White Hotspot (#ffffff)
+            ColorSequenceKeypoint.new(0.70, Color3.fromRGB(217, 70, 239)), -- Electric Magenta / Fuchsia (#d946ef)
+            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(168, 85, 247))  -- Royal Purple (#a855f7)
+        })
+        floatStrokeGrad.Rotation = 0
+        floatStrokeGrad.Parent = floatStroke
+
+        -- 2.5 deg per frame RenderStepped rotation (Animedice spec)
+        local floatStrokeConn = RunService.RenderStepped:Connect(function()
+            if floatStrokeGrad and floatStrokeGrad.Parent then
+                floatStrokeGrad.Rotation = (floatStrokeGrad.Rotation + 2.5) % 360
+            end
+        end)
+        table.insert(DiceUI._connections, floatStrokeConn)
+
+        -- Glass highlight container
+        local floatGlass = Instance.new("Frame")
+        floatGlass.Name = "FloatGlass"
+        floatGlass.Size = UDim2.new(1, 0, 0.45, 0)
+        floatGlass.Position = UDim2.new(0, 0, 0, 0)
+        floatGlass.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        floatGlass.BackgroundTransparency = 1 -- Zero opacity ensures zero square edge artifact on logo
+        floatGlass.BorderSizePixel = 0
+        floatGlass.ZIndex = 2
+        addCorner(floatGlass, 16)
+        floatGlass.Parent = floatBtn
+
+        floatBtn.Parent = screenGui
+        Window._floatBtn = floatBtn
+
+        -- Centered Razor-Sharp Brand Logo Icon Layer (ZIndex 4)
+        -- Background is 100% transparent; the squircle obsidian button background blends seamlessly
+        local floatLogo = Instance.new("ImageLabel")
+        floatLogo.Name = "FloatLogo"
+        floatLogo.Size = UDim2.fromOffset(36, 36)
+        floatLogo.Position = UDim2.new(0.5, 0, 0.5, 0)
+        floatLogo.AnchorPoint = Vector2.new(0.5, 0.5)
+        floatLogo.BackgroundTransparency = 1
+        floatLogo.ImageTransparency = Window._visible and 1 or 0
+        floatLogo.BorderSizePixel = 0
+        floatLogo.ScaleType = Enum.ScaleType.Fit
+        floatLogo.ZIndex = 4
+        applyDiceLogo(floatLogo)
+        floatLogo.Parent = floatBtn
+
+        -- Auto-Sync Visibility: Hide floatBtn when main window is visible, fade in when closed
+        syncFloatButtonVisibility = function()
+            if Window._visible then
+                -- Window is open -> fade out float button to avoid blocking the UI
+                local tw = makeTween(floatBtn, 0.2, {
+                    BackgroundTransparency = 1
+                })
+                makeTween(floatLogo, 0.2, { ImageTransparency = 1 })
+                makeTween(floatStroke, 0.2, { Transparency = 1 })
+                                tw.Completed:Connect(function()
+                    if Window._visible then
+                        floatBtn.Visible = false
+                    end
+                end)
+            else
+                -- Window is closed -> show float button docked at edge
+                floatBtn.Visible = true
+                makeTween(floatBtn, 0.25, {
+                    BackgroundTransparency = 0
+                })
+                makeTween(floatLogo, 0.25, { ImageTransparency = 0 })
+                makeTween(floatStroke, 0.25, { Transparency = 0 })
+                            end
+        end
+
+        -- Rock-Solid Dragging with Viewport Clamping & Edge Snapping
+        -- FIXED: Eliminates mouse-sticking by using robust boolean state tracking!
+        local isHolding = false
+        local isDragging = false
+        local dragStartInputPos = Vector3.zero
+        local dragStartAbsPos = Vector2.zero
+        local dragStartTime = 0
+        local restingPos = floatBtn.Position
+
+        local function getViewport(): Vector2
+            local cam = workspace.CurrentCamera
+            return (cam and cam.ViewportSize) or Vector2.new(1280, 720)
+        end
+
+        local lastToggleTime = 0
+        local function triggerToggle()
+            local now = os.clock()
+            if now - lastToggleTime < 0.25 then return end
+            lastToggleTime = now
+
+            -- Genuine Click / Tap: Center-anchored bounce animation using restingPos
+            local origPos = restingPos
+            local tw = makeTween(floatBtn, 0.08, {
+                Size = UDim2.fromOffset(46, 46),
+                Position = UDim2.new(origPos.X.Scale, origPos.X.Offset + 3, origPos.Y.Scale, origPos.Y.Offset + 3)
+            })
+            tw.Completed:Connect(function()
+                makeTween(floatBtn, 0.12, {
+                    Size = UDim2.fromOffset(52, 52),
+                    Position = origPos
+                })
+            end)
+            Window:Toggle()
+        end
+
+        -- Standard Roblox GuiButton events
+        local actConn = floatBtn.Activated:Connect(function()
+            if not isDragging then
+                triggerToggle()
+            end
+        end)
+        local clkConn = floatBtn.MouseButton1Click:Connect(function()
+            if not isDragging then
+                triggerToggle()
+            end
+        end)
+        table.insert(DiceUI._connections, actConn)
+        table.insert(DiceUI._connections, clkConn)
+
+        floatBtn.MouseEnter:Connect(function()
+            makeTween(floatStroke, 0.15, { Thickness = 2.4 })
+        end)
+        floatBtn.MouseLeave:Connect(function()
+            makeTween(floatStroke, 0.15, { Thickness = 2.2 })
+        end)
+
+        local fConn1 = floatBtn.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                isHolding = true
+                isDragging = false
+                dragStartInputPos = input.Position
+                dragStartAbsPos = floatBtn.AbsolutePosition
+                dragStartTime = os.clock()
+                restingPos = floatBtn.Position
+            end
+        end)
+
+        local fConn2 = UserInputService.InputChanged:Connect(function(input)
+            if isHolding and dragStartInputPos ~= Vector3.zero and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local delta = input.Position - dragStartInputPos
+                if delta.Magnitude > 6 then
+                    isDragging = true
+                    local vp = getViewport()
+                    local newX = math.clamp(dragStartAbsPos.X + delta.X, 8, math.max(8, vp.X - 60))
+                    local newY = math.clamp(dragStartAbsPos.Y + delta.Y, 36, math.max(36, vp.Y - 60))
+                    floatBtn.Position = UDim2.new(0, newX, 0, newY)
+                end
+            end
+        end)
+
+        local fConn3 = UserInputService.InputEnded:Connect(function(input)
+            if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and isHolding then
+                isHolding = false
+                local elapsed = os.clock() - dragStartTime
+                local delta = (input.Position - dragStartInputPos).Magnitude
+                if not isDragging and (elapsed < 0.35 and delta < 10) then
+                    triggerToggle()
+                elseif isDragging then
+                    -- Snap cleanly to nearest edge (left 18px or right edge)
+                    local vp = getViewport()
+                    local currentAbsX = floatBtn.AbsolutePosition.X
+                    local targetX = (currentAbsX < vp.X / 2) and 18 or math.max(18, vp.X - 70)
+                    local currentAbsY = math.clamp(floatBtn.AbsolutePosition.Y, 36, math.max(36, vp.Y - 60))
+                    local endPos = UDim2.new(0, targetX, 0, currentAbsY)
+                    restingPos = endPos
+                    makeTween(floatBtn, 0.22, {
+                        Position = endPos
+                    })
+                end
+                dragStartInputPos = Vector3.zero
+                isDragging = false
+            end
+        end)
+
+        table.insert(DiceUI._connections, fConn1)
+        table.insert(DiceUI._connections, fConn2)
+        table.insert(DiceUI._connections, fConn3)
+    end
+
+    --==================================================
+    -- CATEGORY & TAB BUILDER
+    --==================================================
+    function Window:CreateCategory(categoryName: string)
+        local catFrame = Instance.new("Frame")
+        catFrame.BorderSizePixel = 0
+        catFrame.Name = "Category_" .. categoryName
+        catFrame.Size = UDim2.new(1, 0, 0, 20)
+        catFrame.BackgroundTransparency = 1
+        catFrame.LayoutOrder = #tabScroll:GetChildren()
+        catFrame.Parent = tabScroll
+
+        local catLabel = Instance.new("TextLabel")
+        catLabel.Name = "CatLabel"
+        catLabel.Size = UDim2.new(1, -12, 1, 0)
+        catLabel.Position = UDim2.new(0, 10, 0, 0)
+        catLabel.BackgroundTransparency = 1
+        catLabel.Font = Theme.FontBold
+        catLabel.Text = string.upper(categoryName)
+        catLabel.TextColor3 = Theme.TextDim
+        catLabel.TextSize = 9
+        catLabel.TextXAlignment = Enum.TextXAlignment.Left
+        catLabel.TextTransparency = Window._sidebarExpanded and 0 or 1
+        catLabel.Parent = catFrame
+
+        local catDivider = Instance.new("Frame")
+        catDivider.BorderSizePixel = 0
+        catDivider.Name = "CatDivider"
+        catDivider.Size = UDim2.new(0, 24, 0, 1)
+        catDivider.Position = UDim2.new(0.5, 0, 0.5, 0)
+        catDivider.AnchorPoint = Vector2.new(0.5, 0.5)
+        catDivider.BackgroundColor3 = Theme.Border
+        catDivider.BackgroundTransparency = 0.5
+        catDivider.Visible = not Window._sidebarExpanded
+        catDivider.Parent = catFrame
+
+        table.insert(Window._categoryFrames, { Frame = catFrame, Label = catLabel, Divider = catDivider })
+        return catFrame
+    end
+
+    function Window:CreateTab(tabCfg: { Name: string, Icon: string?, Category: string?, Badge: string? })
+        local tabName = tabCfg.Name or "Tab"
+        if tabCfg.Category and not Window._categories[tabCfg.Category] then
+            Window._categories[tabCfg.Category] = true
+            Window:CreateCategory(tabCfg.Category)
+        end
+        local iconAsset = DiceUI:GetIcon(tabCfg.Icon or "Layers")
+        local badgeText = tabCfg.Badge
+
+        -- Tab Button in Sidebar (Height 32px, 3D Bevel & Outward Luminous Glow)
+        local tabBtn = Instance.new("TextButton")
+        tabBtn.Name = "Tab_" .. tabName
+        tabBtn.Size = UDim2.new(1, 0, 0, 32)
+        tabBtn.BackgroundColor3 = Theme.CardBg
+        tabBtn.BackgroundTransparency = 1
+        tabBtn.Text = ""
+        tabBtn.AutoButtonColor = false
+        addCorner(tabBtn, 8)
+        local tabStroke = addStroke(tabBtn, Color3.fromRGB(80, 56, 120), 1, 1)
+        local tabStrokeGrad = Instance.new("UIGradient")
+        tabStrokeGrad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.0, Color3.fromRGB(120, 80, 180)),
+            ColorSequenceKeypoint.new(1.0, Color3.fromRGB(40, 26, 64))
+        })
+        tabStrokeGrad.Rotation = 90
+        tabStrokeGrad.Parent = tabStroke
+        tabBtn.Parent = tabScroll
+
+        -- Soft Ambient Glow Anchor (Zero-size hidden anchor to prevent any raster clipping)
+        local activeGlow = Instance.new("ImageLabel")
+        activeGlow.Name = "ActiveGlow"
+        activeGlow.Size = UDim2.new(0, 0, 0, 0)
+        activeGlow.Position = UDim2.new(0, 4, 0.5, 0)
+        activeGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+        activeGlow.BackgroundTransparency = 1
+        activeGlow.BorderSizePixel = 0
+        activeGlow.Image = "rbxassetid://5028857084"
+        activeGlow.ImageColor3 = Color3.fromRGB(192, 132, 252)
+        activeGlow.ImageTransparency = 1
+        activeGlow.Visible = false
+        activeGlow.Active = false
+        activeGlow.ZIndex = 1
+        activeGlow.Parent = tabBtn
+
+        -- Soft Luminous Accent Pill (Delicate 3x16px capsule with soft lavender core - Zero harsh borders)
+        local activeBar = Instance.new("Frame")
+        activeBar.Name = "ActiveBar"
+        activeBar.Size = UDim2.new(0, 3, 0, 16)
+        activeBar.Position = UDim2.new(0, 4, 0.5, 0)
+        activeBar.AnchorPoint = Vector2.new(0, 0.5)
+        activeBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        activeBar.BackgroundTransparency = 1
+        activeBar.BorderSizePixel = 0
+        activeBar.Active = false
+        activeBar.ZIndex = 2
+        addCorner(activeBar, 2)
+
+        local barGrad = Instance.new("UIGradient")
+        barGrad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.00, Color3.fromRGB(168, 85, 247)),
+            ColorSequenceKeypoint.new(0.50, Color3.fromRGB(228, 196, 255)),
+            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(168, 85, 247))
+        })
+        barGrad.Parent = activeBar
+        activeBar.Parent = tabBtn
+
+        -- Tab Icon (16x16px)
+        local tabIcon = Instance.new("ImageLabel")
+        tabIcon.Name = "Icon"
+        tabIcon.Size = UDim2.new(0, 16, 0, 16)
+        tabIcon.Position = UDim2.new(0, 14, 0.5, 0)
+        tabIcon.AnchorPoint = Vector2.new(0, 0.5)
+        tabIcon.BackgroundTransparency = 1
+        tabIcon.Image = iconAsset
+        if iconAsset == Icons.Dice or iconAsset == LOGO_IMAGE_ID then
+            applyDiceLogo(tabIcon)
+        end
+        tabIcon.ImageColor3 = Theme.TextMuted
+        tabIcon.Parent = tabBtn
+
+        -- Tab Label (11px)
+        local tabLabel = Instance.new("TextLabel")
+        tabLabel.Name = "Label"
+        tabLabel.Size = UDim2.new(1, -52, 1, 0)
+        tabLabel.Position = UDim2.new(0, 46, 0, 0)
+        tabLabel.BackgroundTransparency = 1
+        tabLabel.Font = Theme.FontMedium
+        tabLabel.Text = tabName
+        tabLabel.TextColor3 = Theme.TextMuted
+        tabLabel.TextSize = 11
+        tabLabel.TextXAlignment = Enum.TextXAlignment.Left
+        tabLabel.Parent = tabBtn
+
+        -- Optional Badge
+        local badge: Frame? = nil
+        if badgeText then
+            badge = Instance.new("Frame")
+            badge.Name = "Badge"
+            badge.Size = UDim2.new(0, 26, 0, 14)
+            badge.Position = UDim2.new(1, -6, 0.5, 0)
+            badge.AnchorPoint = Vector2.new(1, 0.5)
+            badge.BackgroundColor3 = Theme.Accent
+            badge.BackgroundTransparency = 0.2
+            addCorner(badge, 4)
+            badge.Parent = tabBtn
+
+            local bText = Instance.new("TextLabel")
+            bText.Size = UDim2.new(1, 0, 1, 0)
+            bText.BackgroundTransparency = 1
+            bText.Font = Theme.FontBold
+            bText.Text = badgeText
+            bText.TextColor3 = Color3.fromRGB(255, 255, 255)
+            bText.TextSize = 8
+            bText.Parent = badge
+        end
+
+        -- Tab Content Page (Multi-Column Grid Container)
+        local page = Instance.new("ScrollingFrame")
+        page.BorderSizePixel = 0
+        page.Name = "Page_" .. tabName
+        page.Size = UDim2.new(1, 0, 1, 0)
+        page.BackgroundTransparency = 1
+        page.ScrollBarThickness = 3
+        page.ScrollBarImageColor3 = Theme.Border
+        page.ScrollingEnabled = true
+        page.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
+        page.ScrollingDirection = Enum.ScrollingDirection.Y
+        page.Selectable = false
+        page.AutomaticCanvasSize = Enum.AutomaticSize.None
+        page.CanvasSize = UDim2.new(0, 0, 0, 0)
+        page.Active = true
+        page.Visible = false
+        page.Parent = contentArea
+
+        -- Responsive Multi-Column Card Layout (Pixel-Perfect 10px Margins & Center Gap)
+        local colContainer = Instance.new("Frame")
+        colContainer.BorderSizePixel = 0
+        colContainer.Name = "ColumnContainer"
+        colContainer.Size = UDim2.new(1, -20, 0, 0)
+        colContainer.Position = UDim2.new(0, 10, 0, 10)
+        colContainer.BackgroundTransparency = 1
+        colContainer.Active = false
+        colContainer.Parent = page
+        addPadding(colContainer, 0, 14, 0, 0)
+
+        local leftCol = Instance.new("Frame")
+        leftCol.BorderSizePixel = 0
+        leftCol.Name = "LeftColumn"
+        leftCol.Size = UDim2.new(0.5, -5, 0, 0)
+        leftCol.Position = UDim2.new(0, 0, 0, 0)
+        leftCol.BackgroundTransparency = 1
+        leftCol.AutomaticSize = Enum.AutomaticSize.Y
+        leftCol.Active = false
+        leftCol.Parent = colContainer
+
+        local leftLayout = Instance.new("UIListLayout")
+        leftLayout.Padding = UDim.new(0, 8)
+        leftLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        leftLayout.Parent = leftCol
+
+        local rightCol = Instance.new("Frame")
+        rightCol.BorderSizePixel = 0
+        rightCol.Name = "RightColumn"
+        rightCol.Size = UDim2.new(0.5, -5, 0, 0)
+        rightCol.Position = UDim2.new(0.5, 5, 0, 0)
+        rightCol.BackgroundTransparency = 1
+        rightCol.AutomaticSize = Enum.AutomaticSize.Y
+        rightCol.Active = false
+        rightCol.Parent = colContainer
+
+        local rightLayout = Instance.new("UIListLayout")
+        rightLayout.Padding = UDim.new(0, 8)
+        rightLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        rightLayout.Parent = rightCol
+
+        local fullCol = Instance.new("Frame")
+        fullCol.BorderSizePixel = 0
+        fullCol.Name = "FullColumn"
+        fullCol.Size = UDim2.new(1, 0, 0, 0)
+        fullCol.BackgroundTransparency = 1
+        fullCol.AutomaticSize = Enum.AutomaticSize.Y
+        fullCol.Active = false
+        fullCol.LayoutOrder = 99
+        fullCol.Parent = colContainer
+
+        local fullLayout = Instance.new("UIListLayout")
+        fullLayout.Padding = UDim.new(0, 8)
+        fullLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        fullLayout.Parent = fullCol
+
+        -- Responsive Width Adapter & Exact Dynamic CanvasSize Computation
+        local function adaptColumns()
+            local w = contentArea.AbsoluteSize.X
+            local isStacked = (w < 440)
+            local totalH = 0
+
+            local leftH = leftCol.AbsoluteSize.Y
+            local rightH = rightCol.AbsoluteSize.Y
+            local fullH = fullCol.AbsoluteSize.Y
+
+            if isStacked then
+                -- Single-column stacked mode (Mobile / squished viewport)
+                leftCol.Size = UDim2.new(1, 0, 0, 0)
+                leftCol.Position = UDim2.new(0, 0, 0, 0)
+
+                local rightOffset = (leftH > 0) and (leftH + 8) or 0
+                rightCol.Size = UDim2.new(1, 0, 0, 0)
+                rightCol.Position = UDim2.new(0, 0, 0, rightOffset)
+
+                local fullOffset = rightOffset + ((rightH > 0) and (rightH + 8) or 0)
+                fullCol.Size = UDim2.new(1, 0, 0, 0)
+                fullCol.Position = UDim2.new(0, 0, 0, fullOffset)
+
+                totalH = fullOffset + fullH
+            else
+                -- Two-column symmetrical grid mode (Desktop: 10px / 265px / 10px / 265px / 10px)
+                leftCol.Size = UDim2.new(0.5, -5, 0, 0)
+                leftCol.Position = UDim2.new(0, 0, 0, 0)
+
+                rightCol.Size = UDim2.new(0.5, -5, 0, 0)
+                rightCol.Position = UDim2.new(0.5, 5, 0, 0)
+
+                local maxColH = math.max(leftH, rightH)
+                local fullOffset = (maxColH > 0) and (maxColH + 8) or 0
+                fullCol.Size = UDim2.new(1, 0, 0, 0)
+                fullCol.Position = UDim2.new(0, 0, 0, fullOffset)
+
+                totalH = fullOffset + fullH
+            end
+
+            colContainer.Size = UDim2.new(1, -20, 0, totalH)
+            page.CanvasSize = UDim2.new(0, 0, 0, totalH + 30)
+        end
+
+        local cConn1 = contentArea:GetPropertyChangedSignal("AbsoluteSize"):Connect(adaptColumns)
+        local cConn2 = leftCol:GetPropertyChangedSignal("AbsoluteSize"):Connect(adaptColumns)
+        local cConn3 = rightCol:GetPropertyChangedSignal("AbsoluteSize"):Connect(adaptColumns)
+        local cConn4 = fullCol:GetPropertyChangedSignal("AbsoluteSize"):Connect(adaptColumns)
+        table.insert(DiceUI._connections, cConn1)
+        table.insert(DiceUI._connections, cConn2)
+        table.insert(DiceUI._connections, cConn3)
+        table.insert(DiceUI._connections, cConn4)
+        task.defer(adaptColumns)
+
+        local Tab = {
+            _btn = tabBtn,
+            _stroke = tabStroke,
+            _label = tabLabel,
+            _icon = tabIcon,
+            _badge = badge,
+            _activeBar = activeBar,
+            _activeGlow = activeGlow,
+            _page = page,
+            _leftCol = leftCol,
+            _rightCol = rightCol,
+            _fullCol = fullCol,
+            _adapt = adaptColumns,
+            _active = false
+        }
+
+        function Tab:Select()
+            for _, t in ipairs(Window._tabs) do
+                if t ~= Tab then
+                    t._active = false
+                    t._page.Visible = false
+                    makeTween(t._btn, 0.18, { BackgroundTransparency = 1 })
+                    if t._stroke then makeTween(t._stroke, 0.18, { Transparency = 1 }) end
+                    makeTween(t._activeBar, 0.18, { BackgroundTransparency = 1 })
+                    if t._activeGlow then makeTween(t._activeGlow, 0.18, { ImageTransparency = 1 }) end
+                    makeTween(t._icon, 0.18, { ImageColor3 = Theme.TextMuted })
+                    makeTween(t._label, 0.18, { TextColor3 = Theme.TextMuted })
+                end
+            end
+            Tab._active = true
+            Tab._page.Visible = true
+            makeTween(Tab._btn, 0.22, {
+                BackgroundColor3 = Color3.fromRGB(26, 20, 38),
+                BackgroundTransparency = 0.25
+            })
+            if Tab._stroke then makeTween(Tab._stroke, 0.22, { Transparency = 0.45, Color = Color3.fromRGB(120, 80, 180) }) end
+            makeTween(Tab._activeBar, 0.22, { BackgroundTransparency = 0 })
+            if Tab._activeGlow then makeTween(Tab._activeGlow, 0.22, { ImageTransparency = 0.65 }) end
+            makeTween(Tab._icon, 0.22, { ImageColor3 = Color3.fromRGB(255, 255, 255) })
+            makeTween(Tab._label, 0.22, { TextColor3 = Color3.fromRGB(255, 255, 255) })
+            Window._activeTab = Tab
+            task.defer(adaptColumns)
+        end
+
+        tabBtn.MouseButton1Click:Connect(function()
+            Tab:Select()
+        end)
+
+        tabBtn.MouseEnter:Connect(function()
+            if not Tab._active then
+                makeTween(tabBtn, 0.15, { BackgroundTransparency = 0.85 })
+                makeTween(tabLabel, 0.15, { TextColor3 = Theme.TextBody })
+            end
+        end)
+        tabBtn.MouseLeave:Connect(function()
+            if not Tab._active then
+                makeTween(tabBtn, 0.15, { BackgroundTransparency = 1 })
+                makeTween(tabLabel, 0.15, { TextColor3 = Theme.TextMuted })
+            end
+        end)
+
+        --==================================================
+        -- SECTION / CARD BUILDER (SOLID CHEAT GROUPBOX CONTAINER)
+        --==================================================
+        function Tab:CreateSection(secCfg: {
+            Name: string,
+            Side: string?,
+            Icon: string?,
+            Badge: string?,
+            Description: string?
+        })
+            local secName = secCfg.Name or "Section"
+            local side = (secCfg.Side and secCfg.Side:lower()) or "left"
+            local secIcon = secCfg.Icon and DiceUI:GetIcon(secCfg.Icon) or nil
+            local secDesc = secCfg.Description
+            local secBadge = secCfg.Badge
+
+            local targetCol = leftCol
+            if side == "right" then
+                targetCol = rightCol
+            elseif side == "full" then
+                targetCol = fullCol
+            end
+
+            -- Solid 3D Convex Groupbox with Specular Rim Lighting
+            local card = Instance.new("Frame")
+            card.Name = "Card_" .. secName
+            card.Size = UDim2.new(1, 0, 0, 0)
+            card.AutomaticSize = Enum.AutomaticSize.Y
+            card.BackgroundColor3 = Theme.CardBg
+            card.BackgroundTransparency = Theme.CardBgTransparency
+            card.Active = false
+            addCorner(card, 8)
+            local cardStroke = addStroke(card, Theme.CardStroke, 1, Theme.CardStrokeTransparency)
+            local cardStrokeGrad = Instance.new("UIGradient")
+            cardStrokeGrad.Name = "StrokeBevel"
+            cardStrokeGrad.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0.0, Color3.fromRGB(56, 62, 82)),
+                ColorSequenceKeypoint.new(1.0, Color3.fromRGB(22, 25, 34))
+            })
+            cardStrokeGrad.Rotation = 90
+            cardStrokeGrad.Parent = cardStroke
+
+            local card3DGrad = Instance.new("UIGradient")
+            card3DGrad.Name = "Card3DGradient"
+            card3DGrad.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0.0, Color3.fromRGB(24, 27, 36)),
+                ColorSequenceKeypoint.new(1.0, Color3.fromRGB(17, 19, 26))
+            })
+            card3DGrad.Rotation = 90
+            card3DGrad.Parent = card
+            card.Parent = targetCol
+
+            addPadding(card, 8, 10, 8, 8)
+
+            local cardLayout = Instance.new("UIListLayout")
+            cardLayout.Padding = UDim.new(0, 6)
+            cardLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            cardLayout.Parent = card
+
+            -- Clean Title Row (Height 20px, LayoutOrder = 1)
+            local headerRow = Instance.new("Frame")
+            headerRow.BorderSizePixel = 0
+            headerRow.Name = "CardHeader"
+            headerRow.Size = UDim2.new(1, 0, 0, 20)
+            headerRow.BackgroundTransparency = 1
+            headerRow.Active = false
+            headerRow.LayoutOrder = 1
+            headerRow.Parent = card
+
+            -- Sleek Neon Purple Indicator Pill with Smooth Radial Bloom (Zero Boxiness)
+            local pillGlow = Instance.new("ImageLabel")
+            pillGlow.Name = "PillGlow"
+            pillGlow.Size = UDim2.fromOffset(26, 26)
+            pillGlow.Position = UDim2.new(0, 3.5, 0.5, 0)
+            pillGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+            pillGlow.BackgroundTransparency = 1
+            pillGlow.BorderSizePixel = 0
+            pillGlow.Image = "rbxassetid://5028857084"
+            pillGlow.ImageColor3 = Color3.fromRGB(192, 132, 252)
+            pillGlow.ImageTransparency = 0.35
+            pillGlow.ScaleType = Enum.ScaleType.Fit
+            pillGlow.Active = false
+            pillGlow.ZIndex = 1
+            pillGlow.Parent = headerRow
+
+            local accentPill = Instance.new("Frame")
+            accentPill.Size = UDim2.new(0, 3, 0, 12)
+            accentPill.Position = UDim2.new(0, 2, 0.5, 0)
+            accentPill.AnchorPoint = Vector2.new(0, 0.5)
+            accentPill.BackgroundColor3 = Theme.Accent
+            accentPill.Active = false
+            accentPill.ZIndex = 2
+            addCorner(accentPill, 2)
+            local pillGrad = Instance.new("UIGradient")
+            pillGrad.Color = Theme.AccentGradient
+            pillGrad.Parent = accentPill
+            accentPill.Parent = headerRow
+
+            local titleX = 10
+            if secIcon then
+                local headerIcon = Instance.new("ImageLabel")
+                headerIcon.Name = "HeaderIcon"
+                headerIcon.Size = UDim2.new(0, 12, 0, 12)
+                headerIcon.Position = UDim2.new(0, 9, 0.5, 0)
+                headerIcon.AnchorPoint = Vector2.new(0, 0.5)
+                headerIcon.BackgroundTransparency = 1
+                headerIcon.Active = false
+                headerIcon.Image = secIcon
+                if secIcon == Icons.Dice or secIcon == LOGO_IMAGE_ID then
+                    applyDiceLogo(headerIcon)
+                end
+                headerIcon.ImageColor3 = Theme.Accent
+                headerIcon.Parent = headerRow
+                titleX = 25
+            end
+
+            local cardTitle = Instance.new("TextLabel")
+            cardTitle.Size = UDim2.new(1, -titleX - (secBadge and 36 or 2), 1, 0)
+            cardTitle.Position = UDim2.new(0, titleX, 0, 0)
+            cardTitle.BackgroundTransparency = 1
+            cardTitle.Font = Theme.FontBold
+            cardTitle.Text = secName:upper()
+            cardTitle.TextColor3 = Color3.fromRGB(245, 248, 252)
+            cardTitle.TextSize = 10
+            cardTitle.TextXAlignment = Enum.TextXAlignment.Left
+            cardTitle.Active = false
+            cardTitle.Parent = headerRow
+
+            if secBadge then
+                local badgeFrame = Instance.new("Frame")
+                badgeFrame.Name = "CardBadge"
+                badgeFrame.Size = UDim2.new(0, 28, 0, 14)
+                badgeFrame.Position = UDim2.new(1, -2, 0.5, 0)
+                badgeFrame.AnchorPoint = Vector2.new(1, 0.5)
+                badgeFrame.BackgroundColor3 = Theme.Accent
+                badgeFrame.BackgroundTransparency = 0.25
+                addCorner(badgeFrame, 4)
+                badgeFrame.Parent = headerRow
+
+                local bText = Instance.new("TextLabel")
+                bText.Size = UDim2.new(1, 0, 1, 0)
+                bText.BackgroundTransparency = 1
+                bText.Font = Theme.FontBold
+                bText.Text = secBadge
+                bText.TextColor3 = Color3.fromRGB(255, 255, 255)
+                bText.TextSize = 8
+                bText.Parent = badgeFrame
+            end
+
+            -- Header Bottom Subtle Separator Line (LayoutOrder = 2 with Elegant Fade Gradient)
+            local sepLine = Instance.new("Frame")
+            sepLine.Name = "HeaderSep"
+            sepLine.Size = UDim2.new(1, 0, 0, 1)
+            sepLine.BackgroundColor3 = Theme.Border
+            sepLine.BackgroundTransparency = 0.35
+            sepLine.BorderSizePixel = 0
+            sepLine.Active = false
+            sepLine.LayoutOrder = 2
+            local sepGrad = Instance.new("UIGradient")
+            sepGrad.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.2),
+                NumberSequenceKeypoint.new(0.65, 0.75),
+                NumberSequenceKeypoint.new(1, 1)
+            })
+            sepGrad.Parent = sepLine
+            sepLine.Parent = card
+
+            -- Optional Description (LayoutOrder = 3)
+            if secDesc then
+                local descLabel = Instance.new("TextLabel")
+                descLabel.Name = "CardDesc"
+                descLabel.Size = UDim2.new(1, 0, 0, 12)
+                descLabel.AutomaticSize = Enum.AutomaticSize.Y
+                descLabel.BackgroundTransparency = 1
+                descLabel.Font = Theme.FontRegular
+                descLabel.Text = secDesc
+                descLabel.TextColor3 = Theme.TextDim
+                descLabel.TextSize = 9
+                descLabel.TextWrapped = true
+                descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                descLabel.Active = false
+                descLabel.LayoutOrder = 3
+                addPadding(descLabel, 0, 2, 8, 8)
+                descLabel.Parent = card
+            end
+
+            -- Dynamic Element Layout Order Counter (Controls start at 10)
+            local elementOrder = 10
+
+            local Section = {
+                _card = card
+            }
+
+            --==================================================
+            -- CONTROL: TOGGLE (COMPACT 30PX ROW, 36X18PX SWITCH PILL)
+            --==================================================
+            function Section:AddToggle(id: string, tCfg: {
+                Name: string,
+                Default: boolean?,
+                Tooltip: string?,
+                Callback: ((boolean) -> ())?
+            })
+                elementOrder = elementOrder + 1
+                local tName = tCfg.Name or id
+                local state = tCfg.Default or false
+                local callback = tCfg.Callback
+
+                local row = Instance.new("Frame")
+                row.Name = "Toggle_" .. id
+                row.Size = UDim2.new(1, 0, 0, 30)
+                row.BackgroundColor3 = Theme.ItemBg
+                row.BackgroundTransparency = 0.5
+                row.Active = false
+                row.LayoutOrder = elementOrder
+                row.ClipsDescendants = true
+                addCorner(row, 6)
+                local rowStroke = addStroke(row, Theme.Border, 1, 0.75)
+                addPadding(row, 0, 0, 8, 8)
+                row.Parent = card
+
+                local titleLbl = Instance.new("TextLabel")
+                titleLbl.Size = UDim2.new(1, -44, 1, 0)
+                titleLbl.BackgroundTransparency = 1
+                titleLbl.Font = Theme.FontMedium
+                titleLbl.Text = tName
+                titleLbl.TextColor3 = Theme.TextBody
+                titleLbl.TextSize = 11
+                titleLbl.TextTruncate = Enum.TextTruncate.None
+                titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+                titleLbl.Active = false
+                titleLbl.Parent = row
+
+                -- 3D Recessed Switch Track (36x18px)
+                local switchTrack = Instance.new("Frame")
+                switchTrack.Name = "SwitchTrack"
+                switchTrack.Size = UDim2.new(0, 36, 0, 18)
+                switchTrack.Position = UDim2.new(1, -36, 0.5, 0)
+                switchTrack.AnchorPoint = Vector2.new(0, 0.5)
+                switchTrack.BackgroundColor3 = state and Theme.Accent or Theme.ItemTrack
+                switchTrack.ClipsDescendants = true
+                switchTrack.Active = false
+                addCorner(switchTrack, 9)
+                local trackStroke = addStroke(switchTrack, state and Theme.Accent or Theme.Border, 1, state and 0.25 or 0.8)
+                local trackGrad = Instance.new("UIGradient")
+                trackGrad.Color = Theme.AccentGradient
+                trackGrad.Enabled = state
+                trackGrad.Parent = switchTrack
+                switchTrack.Parent = row
+
+                -- 3D Tactile Switch Knob (12x12px with pure specular gloss)
+                local switchKnob = Instance.new("Frame")
+                switchKnob.Name = "SwitchKnob"
+                switchKnob.Size = UDim2.new(0, 12, 0, 12)
+                switchKnob.Position = state and UDim2.new(1, -15, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)
+                switchKnob.AnchorPoint = Vector2.new(0, 0.5)
+                switchKnob.BackgroundColor3 = state and Color3.fromRGB(255, 255, 255) or Theme.TextMuted
+                switchKnob.Active = false
+                addCorner(switchKnob, 6)
+                addStroke(switchKnob, Color3.fromRGB(255, 255, 255), 1, state and 0.2 or 0.7)
+                switchKnob.Parent = switchTrack
+
+                local toggleObj = {
+                    Value = state,
+                    SetValue = function(self, val: boolean)
+                        self.Value = val
+                        trackGrad.Enabled = val
+                        makeTween(switchTrack, 0.18, {
+                            BackgroundColor3 = val and Theme.Accent or Theme.ItemTrack
+                        })
+                        makeTween(trackStroke, 0.18, {
+                            Color = val and Theme.Accent or Theme.Border,
+                            Transparency = val and 0.3 or 0.8
+                        })
+                        makeTween(switchKnob, 0.18, {
+                            Position = val and UDim2.new(1, -15, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
+                            BackgroundColor3 = val and Color3.fromRGB(255, 255, 255) or Theme.TextMuted
+                        })
+                        if callback then task.spawn(callback, val) end
+                    end
+                }
+
+                -- Responsive Click Target:
+                -- On desktop PC, cover entire row for effortless 1-click toggling.
+                -- On mobile touch, cover the switch pill area (right 52px) so the left 80% remains completely open for smooth scrolling!
+                local triggerBtn = Instance.new("TextButton")
+                triggerBtn.Name = "Trigger"
+                triggerBtn.BackgroundTransparency = 1
+                triggerBtn.Text = ""
+                triggerBtn.AutoButtonColor = false
+                triggerBtn.ZIndex = 3
+                if UserInputService.TouchEnabled then
+                    triggerBtn.Size = UDim2.new(0, 56, 1, 0)
+                    triggerBtn.Position = UDim2.new(1, -56, 0, 0)
+                else
+                    triggerBtn.Size = UDim2.new(1, 0, 1, 0)
+                    triggerBtn.Position = UDim2.new(0, 0, 0, 0)
+                end
+                triggerBtn.Parent = row
+
+                triggerBtn.MouseButton1Click:Connect(function()
+                    toggleObj:SetValue(not toggleObj.Value)
+                end)
+
+                triggerBtn.MouseEnter:Connect(function()
+                    makeTween(row, 0.15, { BackgroundTransparency = 0.25 })
+                    makeTween(rowStroke, 0.15, { Color = Theme.Accent, Transparency = 0.4 })
+                end)
+                triggerBtn.MouseLeave:Connect(function()
+                    makeTween(row, 0.15, { BackgroundTransparency = 0.5 })
+                    makeTween(rowStroke, 0.15, { Color = Theme.Border, Transparency = 0.75 })
+                end)
+
+                DiceUI.Toggles[id] = toggleObj
+                task.defer(adaptColumns)
+                return toggleObj
+            end
+
+            --==================================================
+            -- CONTROL: SLIDER (COMPACT 38PX ROW, 4PX TRACK, 10PX THUMB)
+            --==================================================
+            function Section:AddSlider(id: string, sCfg: {
+                Name: string,
+                Min: number?,
+                Max: number?,
+                Default: number?,
+                Decimals: number?,
+                Suffix: string?,
+                Callback: ((number) -> ())?
+            })
+                elementOrder = elementOrder + 1
+                local sName = sCfg.Name or id
+                local minVal = sCfg.Min or 0
+                local maxVal = sCfg.Max or 100
+                local defaultVal = math.clamp(sCfg.Default or minVal, minVal, maxVal)
+                local decimals = sCfg.Decimals or 0
+                local suffix = sCfg.Suffix or ""
+                local callback = sCfg.Callback
+
+                local row = Instance.new("Frame")
+                row.Name = "Slider_" .. id
+                row.Size = UDim2.new(1, 0, 0, 38)
+                row.BackgroundColor3 = Theme.ItemBg
+                row.BackgroundTransparency = 0.5
+                row.Active = false
+                row.LayoutOrder = elementOrder
+                row.ClipsDescendants = true
+                addCorner(row, 6)
+                addStroke(row, Theme.Border, 1, 0.75)
+                addPadding(row, 5, 5, 8, 8)
+                row.Parent = card
+
+                -- Line 1: Title on Left, Value Tag on Right
+                local topLine = Instance.new("Frame")
+                topLine.BorderSizePixel = 0
+                topLine.Size = UDim2.new(1, 0, 0, 16)
+                topLine.BackgroundTransparency = 1
+                topLine.Active = false
+                topLine.Parent = row
+
+                local titleLbl = Instance.new("TextLabel")
+                titleLbl.Size = UDim2.new(1, -64, 1, 0)
+                titleLbl.BackgroundTransparency = 1
+                titleLbl.Font = Theme.FontMedium
+                titleLbl.Text = sName
+                titleLbl.TextColor3 = Theme.TextBody
+                titleLbl.TextSize = 11
+                titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+                titleLbl.TextTruncate = Enum.TextTruncate.None
+                titleLbl.Active = false
+                titleLbl.Parent = topLine
+
+                local valBadge = Instance.new("Frame")
+                valBadge.Size = UDim2.new(0, 60, 0, 16)
+                valBadge.Position = UDim2.new(1, 0, 0, 0)
+                valBadge.AnchorPoint = Vector2.new(1, 0)
+                valBadge.BackgroundColor3 = Theme.CardBg
+                valBadge.BackgroundTransparency = 0.3
+                valBadge.Active = false
+                addCorner(valBadge, 4)
+                addStroke(valBadge, Theme.Border, 1, 0.75)
+                valBadge.Parent = topLine
+
+                local function formatValue(v: number): string
+                    if decimals == 0 then
+                        return string.format("%d", math.floor(v + 0.5))
+                    else
+                        return string.format("%." .. tostring(decimals) .. "f", v)
+                    end
+                end
+
+                local valLbl = Instance.new("TextLabel")
+                valLbl.Size = UDim2.new(1, 0, 1, 0)
+                valLbl.BackgroundTransparency = 1
+                valLbl.Font = Theme.FontBold
+                valLbl.Text = formatValue(defaultVal) .. suffix
+                valLbl.TextColor3 = Theme.Accent
+                valLbl.TextSize = 10
+                valLbl.Active = false
+                valLbl.Parent = valBadge
+
+                -- Line 2: Sleek 4px Interactive Track
+                local trackHitbox = Instance.new("TextButton")
+                trackHitbox.Size = UDim2.new(1, 0, 0, 14)
+                trackHitbox.Position = UDim2.new(0, 0, 1, -13)
+                trackHitbox.BackgroundTransparency = 1
+                trackHitbox.Text = ""
+                trackHitbox.AutoButtonColor = false
+                trackHitbox.Active = true
+                trackHitbox.Parent = row
+
+                local track = Instance.new("Frame")
+                track.Size = UDim2.new(1, 0, 0, 4)
+                track.Position = UDim2.new(0, 0, 0.5, -2)
+                track.BackgroundColor3 = Theme.ItemTrack
+                track.BorderSizePixel = 0
+                addCorner(track, 2)
+                track.Parent = trackHitbox
+
+                local fill = Instance.new("Frame")
+                local relAlpha = (maxVal > minVal) and ((defaultVal - minVal) / (maxVal - minVal)) or 0
+                fill.Size = UDim2.new(relAlpha, 0, 1, 0)
+                fill.BackgroundColor3 = Theme.Accent
+                fill.BorderSizePixel = 0
+                addCorner(fill, 2)
+                fill.Parent = track
+
+                local fillGrad = Instance.new("UIGradient")
+                fillGrad.Color = Theme.AccentGradient
+                fillGrad.Parent = fill
+
+                -- 10px Glowing Thumb
+                local knob = Instance.new("Frame")
+                knob.Size = UDim2.new(0, 10, 0, 10)
+                knob.Position = UDim2.new(1, -5, 0.5, 0)
+                knob.AnchorPoint = Vector2.new(0, 0.5)
+                knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                addCorner(knob, 5)
+                addStroke(knob, Theme.Accent, 1, 0.3)
+                knob.Parent = fill
+
+                local sliderObj = {
+                    Value = defaultVal,
+                    SetValue = function(self, val: number)
+                        val = math.clamp(val, minVal, maxVal)
+                        if decimals == 0 then
+                            val = math.floor(val + 0.5)
+                        else
+                            local mult = 10 ^ decimals
+                            val = math.floor(val * mult + 0.5) / mult
+                        end
+                        self.Value = val
+                        valLbl.Text = formatValue(val) .. suffix
+                        local alpha = (maxVal > minVal) and ((val - minVal) / (maxVal - minVal)) or 0
+                        makeTween(fill, 0.06, { Size = UDim2.new(alpha, 0, 1, 0) })
+                        if callback then task.spawn(callback, val) end
+                    end
+                }
+
+                -- Interaction
+                local dragging = false
+                local function updateFromInput(input)
+                    local trackAbsPos = track.AbsolutePosition.X
+                    local trackAbsSize = math.max(track.AbsoluteSize.X, 1)
+                    local mouseX = input.Position.X
+                    local alpha = math.clamp((mouseX - trackAbsPos) / trackAbsSize, 0, 1)
+                    local val = minVal + alpha * (maxVal - minVal)
+                    sliderObj:SetValue(val)
+                end
+
+                trackHitbox.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        dragging = true
+                        page.ScrollingEnabled = false
+                        makeTween(knob, 0.1, { Size = UDim2.new(0, 12, 0, 12) })
+                        updateFromInput(input)
+                    end
+                end)
+
+                local sConn1 = UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        if dragging then
+                            dragging = false
+                            page.ScrollingEnabled = true
+                            makeTween(knob, 0.1, { Size = UDim2.new(0, 10, 0, 10) })
+                        end
+                    end
+                end)
+
+                local sConn2 = UserInputService.InputChanged:Connect(function(input)
+                    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                        updateFromInput(input)
+                    end
+                end)
+
+                table.insert(DiceUI._connections, sConn1)
+                table.insert(DiceUI._connections, sConn2)
+
+                DiceUI.Options[id] = sliderObj
+                task.defer(adaptColumns)
+                return sliderObj
+            end
+
+            --==================================================
+            -- CONTROL: DROPDOWN (COMPACT 30PX TRIGGER + AUTO-CLOSING TRAY)
+            --==================================================
+            function Section:AddDropdown(id: string, dCfg: {
+                Name: string,
+                Options: { string },
+                Default: string?,
+                Multi: boolean?,
+                Callback: ((any) -> ())?
+            })
+                elementOrder = elementOrder + 1
+                local dName = dCfg.Name or id
+                local options = dCfg.Options or {}
+                local isMulti = dCfg.Multi == true
+                local current = dCfg.Default or (isMulti and {} or options[1] or "")
+                local callback = dCfg.Callback
+                local isOpen = false
+
+                local selectedTable: { [string]: boolean } = {}
+                if isMulti then
+                    if typeof(current) == "table" then
+                        for _, opt in ipairs(current) do selectedTable[opt] = true end
+                    end
+                end
+
+                -- Container (Starts compact at 30px)
+                local row = Instance.new("Frame")
+                row.Name = "Dropdown_" .. id
+                row.Size = UDim2.new(1, 0, 0, 30)
+                row.BackgroundColor3 = Theme.ItemBg
+                row.BackgroundTransparency = 0.5
+                row.Active = false
+                row.ClipsDescendants = true
+                row.LayoutOrder = elementOrder
+                addCorner(row, 6)
+                local rowStroke = addStroke(row, Theme.Border, 1, 0.75)
+                row.Parent = card
+
+                local titleLbl = Instance.new("TextLabel")
+                titleLbl.Size = UDim2.new(0.48, -8, 0, 30)
+                titleLbl.Position = UDim2.new(0, 8, 0, 0)
+                titleLbl.BackgroundTransparency = 1
+                titleLbl.Font = Theme.FontMedium
+                titleLbl.Text = dName
+                titleLbl.TextColor3 = Theme.TextBody
+                titleLbl.TextSize = 11
+                titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+                titleLbl.TextTruncate = Enum.TextTruncate.AtEnd
+                titleLbl.Active = false
+                titleLbl.Parent = row
+
+                -- Luxury 3D Selector Badge
+                local selBadge = Instance.new("Frame")
+                selBadge.Name = "SelBadge"
+                selBadge.Size = UDim2.new(0.48, 0, 0, 22)
+                selBadge.Position = UDim2.new(1, -8, 0, 4)
+                selBadge.AnchorPoint = Vector2.new(1, 0)
+                selBadge.BackgroundColor3 = Color3.fromRGB(18, 21, 28)
+                selBadge.BackgroundTransparency = 0.15
+                selBadge.Active = false
+                addCorner(selBadge, 5)
+                local selStroke = addStroke(selBadge, Color3.fromRGB(48, 42, 68), 1, 0.5)
+                local selBevelGrad = Instance.new("UIGradient")
+                selBevelGrad.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0.0, Color3.fromRGB(30, 34, 46)),
+                    ColorSequenceKeypoint.new(1.0, Color3.fromRGB(16, 18, 25))
+                })
+                selBevelGrad.Rotation = 90
+                selBevelGrad.Parent = selBadge
+                selBadge.Parent = row
+
+                local selText = Instance.new("TextLabel")
+                selText.Size = UDim2.new(1, -22, 1, 0)
+                selText.Position = UDim2.new(0, 7, 0, 0)
+                selText.BackgroundTransparency = 1
+                selText.Font = Theme.FontBold
+                selText.Text = isMulti and "Select..." or tostring(current)
+                selText.TextColor3 = Theme.AccentLight
+                selText.TextSize = 10
+                selText.TextXAlignment = Enum.TextXAlignment.Left
+                selText.TextTruncate = Enum.TextTruncate.AtEnd
+                selText.Active = false
+                selText.Parent = selBadge
+
+                local chevron = Instance.new("ImageLabel")
+                chevron.Size = UDim2.new(0, 12, 0, 12)
+                chevron.Position = UDim2.new(1, -14, 0.5, 0)
+                chevron.AnchorPoint = Vector2.new(0, 0.5)
+                chevron.BackgroundTransparency = 1
+                chevron.Image = Icons.ChevronDown
+                chevron.ImageColor3 = Theme.Accent
+                chevron.Active = false
+                chevron.Parent = selBadge
+
+                -- Interactive Trigger Button
+                local triggerBtn = Instance.new("TextButton")
+                triggerBtn.Name = "Trigger"
+                triggerBtn.BackgroundTransparency = 1
+                triggerBtn.Text = ""
+                triggerBtn.AutoButtonColor = false
+                triggerBtn.ZIndex = 3
+                if UserInputService.TouchEnabled then
+                    triggerBtn.Size = UDim2.new(0.48, 0, 0, 30)
+                    triggerBtn.Position = UDim2.new(1, 0, 0, 0)
+                    triggerBtn.AnchorPoint = Vector2.new(1, 0)
+                else
+                    triggerBtn.Size = UDim2.new(1, 0, 0, 30)
+                    triggerBtn.Position = UDim2.new(0, 0, 0, 0)
+                end
+                triggerBtn.Parent = row
+
+                triggerBtn.MouseEnter:Connect(function()
+                    makeTween(row, 0.15, { BackgroundTransparency = 0.25 })
+                    makeTween(selBadge, 0.15, { BackgroundTransparency = 0.05 })
+                    makeTween(selStroke, 0.15, { Color = Theme.Accent, Transparency = 0.3 })
+                end)
+                triggerBtn.MouseLeave:Connect(function()
+                    makeTween(row, 0.15, { BackgroundTransparency = 0.5 })
+                    makeTween(selBadge, 0.15, { BackgroundTransparency = 0.15 })
+                    makeTween(selStroke, 0.15, { Color = Color3.fromRGB(48, 42, 68), Transparency = 0.5 })
+                end)
+
+                -- Luxury 3D Elevated Option Tray
+                -- INVARIANT: Starts collapsed with Size = 0, Visible = false, ScrollingEnabled = false
+                local optScroll = Instance.new("ScrollingFrame")
+                optScroll.Name = "OptionTray"
+                optScroll.Size = UDim2.new(1, -16, 0, 0)
+                optScroll.Position = UDim2.new(0, 8, 0, 34)
+                optScroll.BackgroundColor3 = Color3.fromRGB(14, 16, 23)
+                optScroll.BackgroundTransparency = 0.05
+                optScroll.BorderSizePixel = 0
+                optScroll.ScrollBarThickness = 2
+                optScroll.ScrollBarImageColor3 = Theme.Accent
+                optScroll.ScrollingEnabled = false
+                optScroll.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
+                optScroll.ScrollingDirection = Enum.ScrollingDirection.Y
+                optScroll.Selectable = false
+                optScroll.AutomaticCanvasSize = Enum.AutomaticSize.None
+                optScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+                optScroll.Visible = false
+                optScroll.Active = true
+                addCorner(optScroll, 6)
+                local optTrayStroke = addStroke(optScroll, Color3.fromRGB(56, 44, 82), 1, 0.35)
+                addPadding(optScroll, 4, 4, 4, 4)
+                optScroll.Parent = row
+
+                local optList = Instance.new("UIListLayout")
+                optList.Padding = UDim.new(0, 3)
+                optList.SortOrder = Enum.SortOrder.LayoutOrder
+                optList.Parent = optScroll
+
+                local dropdownObj = {
+                    Value = current,
+                    _row = row,
+                    Close = function(self)
+                        if isOpen then
+                            isOpen = false
+                            local tw = makeTween(row, 0.18, { Size = UDim2.new(1, 0, 0, 30) })
+                            makeTween(chevron, 0.18, { Rotation = 0 })
+                            if DiceUI._activeDropdown == self then
+                                DiceUI._activeDropdown = nil
+                            end
+                            tw.Completed:Connect(function()
+                                if not isOpen then
+                                    optScroll.Visible = false
+                                    optScroll.ScrollingEnabled = false
+                                    optScroll.Size = UDim2.new(1, -16, 0, 0)
+                                end
+                                adaptColumns()
+                            end)
+                            task.defer(adaptColumns)
+                        end
+                    end,
+                    Open = function(self)
+                        if not isOpen then
+                            if DiceUI._activeDropdown and DiceUI._activeDropdown ~= self then
+                                DiceUI._activeDropdown:Close()
+                            end
+                            DiceUI._activeDropdown = self
+                            isOpen = true
+                            local trayHeight = math.min(#options * 26 + 10, 125)
+                            optScroll.Visible = true
+                            optScroll.ScrollingEnabled = true
+                            optScroll.Size = UDim2.new(1, -16, 0, trayHeight)
+                            local tw = makeTween(row, 0.2, { Size = UDim2.new(1, 0, 0, 36 + trayHeight) })
+                            makeTween(chevron, 0.2, { Rotation = 180 })
+                            tw.Completed:Connect(function()
+                                adaptColumns()
+                            end)
+                            task.defer(adaptColumns)
+                        end
+                    end,
+                    SetValue = function(self, val: any)
+                        self.Value = val
+                        if isMulti then
+                            local keys = {}
+                            for k, v in pairs(selectedTable) do
+                                if v then table.insert(keys, k) end
+                            end
+                            selText.Text = (#keys > 0) and table.concat(keys, ", ") or "None"
+                        else
+                            selText.Text = tostring(val)
+                        end
+                        if callback then task.spawn(callback, self.Value) end
+                    end,
+                    Refresh = function(self, newOpts: { string })
+                        for _, c in ipairs(optScroll:GetChildren()) do
+                            if c:IsA("TextButton") then c:Destroy() end
+                        end
+                        for _, opt in ipairs(newOpts) do
+                            local isSelected = isMulti and (selectedTable[opt] == true) or (self.Value == opt)
+
+                            local oBtn = Instance.new("TextButton")
+                            oBtn.Size = UDim2.new(1, 0, 0, 24)
+                            oBtn.BackgroundColor3 = isSelected and Color3.fromRGB(36, 26, 56) or Color3.fromRGB(20, 23, 32)
+                            oBtn.BackgroundTransparency = isSelected and 0.2 or 0.5
+                            oBtn.Font = Theme.FontMedium
+                            -- Keep leading spaces so btn.Text:find("Wolf") strictly matches
+                            oBtn.Text = "   " .. opt
+                            oBtn.TextColor3 = isSelected and Color3.fromRGB(255, 255, 255) or Theme.TextBody
+                            oBtn.TextSize = 10
+                            oBtn.TextXAlignment = Enum.TextXAlignment.Left
+                            oBtn.AutoButtonColor = false
+                            addCorner(oBtn, 4)
+                            oBtn.Parent = optScroll
+
+                            -- Left glowing indicator pill for selected item
+                            local ind = Instance.new("Frame")
+                            ind.Name = "Indicator"
+                            ind.Size = UDim2.new(0, 2, 0, 14)
+                            ind.Position = UDim2.new(0, 2, 0.5, 0)
+                            ind.AnchorPoint = Vector2.new(0, 0.5)
+                            ind.BackgroundColor3 = Theme.Accent
+                            ind.BackgroundTransparency = isSelected and 0 or 1
+                            addCorner(ind, 1)
+                            ind.Parent = oBtn
+
+                            local checkIcon = Instance.new("ImageLabel")
+                            checkIcon.Size = UDim2.new(0, 12, 0, 12)
+                            checkIcon.Position = UDim2.new(1, -16, 0.5, 0)
+                            checkIcon.AnchorPoint = Vector2.new(0, 0.5)
+                            checkIcon.BackgroundTransparency = 1
+                            checkIcon.Image = Icons.Check
+                            checkIcon.ImageColor3 = Theme.Accent
+                            checkIcon.Visible = isSelected
+                            checkIcon.Parent = oBtn
+
+                            oBtn.MouseButton1Click:Connect(function()
+                                if isMulti then
+                                    selectedTable[opt] = not selectedTable[opt]
+                                    checkIcon.Visible = selectedTable[opt]
+                                    ind.BackgroundTransparency = selectedTable[opt] and 0 or 1
+                                    oBtn.BackgroundColor3 = selectedTable[opt] and Color3.fromRGB(36, 26, 56) or Color3.fromRGB(20, 23, 32)
+                                    oBtn.TextColor3 = selectedTable[opt] and Color3.fromRGB(255, 255, 255) or Theme.TextBody
+                                    self:SetValue(selectedTable)
+                                else
+                                    self:SetValue(opt)
+                                    self:Close()
+                                    for _, sibling in ipairs(optScroll:GetChildren()) do
+                                        if sibling:IsA("TextButton") then
+                                            local chk = sibling:FindFirstChildOfClass("ImageLabel")
+                                            local sInd = sibling:FindFirstChild("Indicator")
+                                            local isThis = (sibling.Text == "   " .. opt or sibling.Text == "  " .. opt)
+                                            if chk then chk.Visible = isThis end
+                                            if sInd then sInd.BackgroundTransparency = isThis and 0 or 1 end
+                                            sibling.BackgroundColor3 = isThis and Color3.fromRGB(36, 26, 56) or Color3.fromRGB(20, 23, 32)
+                                            sibling.TextColor3 = isThis and Color3.fromRGB(255, 255, 255) or Theme.TextBody
+                                        end
+                                    end
+                                end
+                            end)
+
+                            oBtn.MouseEnter:Connect(function()
+                                makeTween(oBtn, 0.12, { BackgroundColor3 = Color3.fromRGB(32, 26, 50), BackgroundTransparency = 0.1, TextColor3 = Color3.fromRGB(255, 255, 255) })
+                            end)
+                            oBtn.MouseLeave:Connect(function()
+                                local activeNow = isMulti and selectedTable[opt] or (self.Value == opt)
+                                makeTween(oBtn, 0.12, {
+                                    BackgroundColor3 = activeNow and Color3.fromRGB(36, 26, 56) or Color3.fromRGB(20, 23, 32),
+                                    BackgroundTransparency = activeNow and 0.2 or 0.5,
+                                    TextColor3 = activeNow and Color3.fromRGB(255, 255, 255) or Theme.TextBody
+                                })
+                            end)
+                        end
+                        local function updateOptCanvas()
+                            optScroll.CanvasSize = UDim2.new(0, 0, 0, optList.AbsoluteContentSize.Y + 8)
+                        end
+                        optList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateOptCanvas)
+                        task.defer(updateOptCanvas)
+                    end
+                }
+
+                triggerBtn.MouseButton1Click:Connect(function()
+                    if isOpen then
+                        dropdownObj:Close()
+                    else
+                        dropdownObj:Open()
+                    end
+                end)
+
+                dropdownObj:Refresh(options)
+                DiceUI.Options[id] = dropdownObj
+                task.defer(adaptColumns)
+                return dropdownObj
+            end
+
+            --==================================================
+            -- CONTROL: BUTTON (COMPACT 30PX ACTION BUTTON)
+            --==================================================
+            function Section:AddButton(bCfg: {
+                Name: string,
+                Icon: string?,
+                Style: string?,
+                Callback: (() -> ())?
+            })
+                elementOrder = elementOrder + 1
+                local bName = bCfg.Name or "Button"
+                local callback = bCfg.Callback
+                local style = bCfg.Style or "Secondary"
+
+                local isPrimary = (style == "Primary")
+                local isDanger = (style == "Danger")
+
+                local btn = Instance.new("TextButton")
+                btn.Name = "Button_" .. bName
+                btn.Size = UDim2.new(1, 0, 0, 30)
+                btn.BackgroundColor3 = isPrimary and Color3.fromRGB(128, 52, 210) or (isDanger and Color3.fromRGB(58, 22, 28) or Theme.CardBg)
+                btn.BackgroundTransparency = (isPrimary or isDanger) and 0.2 or 0.4
+                btn.Text = ""
+                btn.AutoButtonColor = false
+                btn.LayoutOrder = elementOrder
+                btn.ClipsDescendants = true
+                addCorner(btn, 6)
+                local btnStroke = addStroke(btn, isDanger and Theme.Danger or (isPrimary and Theme.Accent or Theme.Border), 1, (isPrimary or isDanger) and 0.25 or 0.6)
+                if isPrimary then
+                    local btnGrad = Instance.new("UIGradient")
+                    btnGrad.Color = Theme.AccentGradient
+                    btnGrad.Transparency = NumberSequence.new({
+                        NumberSequenceKeypoint.new(0, 0.15),
+                        NumberSequenceKeypoint.new(1, 0.35)
+                    })
+                    btnGrad.Parent = btn
+                end
+                btn.Parent = card
+
+                local bLayout = Instance.new("UIListLayout")
+                bLayout.FillDirection = Enum.FillDirection.Horizontal
+                bLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+                bLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+                bLayout.Padding = UDim.new(0, 6)
+                bLayout.Parent = btn
+
+                if bCfg.Icon then
+                    local bIconAsset = DiceUI:GetIcon(bCfg.Icon)
+                    local bIcon = Instance.new("ImageLabel")
+                    bIcon.Size = UDim2.new(0, 14, 0, 14)
+                    bIcon.BackgroundTransparency = 1
+                    bIcon.Image = bIconAsset
+                    if bIconAsset == Icons.Dice or bIconAsset == LOGO_IMAGE_ID then
+                        applyDiceLogo(bIcon)
+                    end
+                    bIcon.ImageColor3 = isDanger and Theme.Danger or (isPrimary and Theme.Accent or Theme.TextTitle)
+                    bIcon.Parent = btn
+                end
+
+                local bLabel = Instance.new("TextLabel")
+                bLabel.Size = UDim2.new(0, 0, 1, 0)
+                bLabel.AutomaticSize = Enum.AutomaticSize.X
+                bLabel.BackgroundTransparency = 1
+                bLabel.Font = Theme.FontBold
+                bLabel.Text = bName
+                bLabel.TextColor3 = isDanger and Color3.fromRGB(255, 200, 210) or (isPrimary and Theme.AccentLight or Theme.TextTitle)
+                bLabel.TextSize = 11
+                bLabel.Parent = btn
+
+                btn.MouseButton1Click:Connect(function()
+                    local origBg = btn.BackgroundColor3
+                    makeTween(btn, 0.08, { BackgroundColor3 = Theme.Accent, BackgroundTransparency = 0.1 })
+                    task.delay(0.1, function()
+                        makeTween(btn, 0.15, { BackgroundColor3 = origBg, BackgroundTransparency = (isPrimary or isDanger) and 0.2 or 0.4 })
+                    end)
+                    if callback then task.spawn(callback) end
+                end)
+
+                btn.MouseEnter:Connect(function()
+                    makeTween(btn, 0.15, { BackgroundTransparency = 0.1 })
+                end)
+                btn.MouseLeave:Connect(function()
+                    makeTween(btn, 0.15, { BackgroundTransparency = (isPrimary or isDanger) and 0.2 or 0.4 })
+                end)
+
+                task.defer(adaptColumns)
+                return btn
+            end
+
+            --==================================================
+            -- CONTROL: INPUT / TEXTBOX (COMPACT 30PX ROW)
+            --==================================================
+            function Section:AddInput(id: string, iCfg: {
+                Name: string,
+                Placeholder: string?,
+                Default: string?,
+                Callback: ((string) -> ())?
+            })
+                elementOrder = elementOrder + 1
+                local iName = iCfg.Name or id
+                local placeholder = iCfg.Placeholder or "Enter value..."
+                local current = iCfg.Default or ""
+                local callback = iCfg.Callback
+
+                local row = Instance.new("Frame")
+                row.Name = "Input_" .. id
+                row.Size = UDim2.new(1, 0, 0, 30)
+                row.BackgroundColor3 = Theme.ItemBg
+                row.BackgroundTransparency = 0.5
+                row.Active = false
+                row.LayoutOrder = elementOrder
+                row.ClipsDescendants = true
+                addCorner(row, 6)
+                addStroke(row, Theme.Border, 1, 0.75)
+                addPadding(row, 0, 0, 8, 8)
+                row.Parent = card
+
+                local titleLbl = Instance.new("TextLabel")
+                titleLbl.Size = UDim2.new(0.5, 0, 1, 0)
+                titleLbl.BackgroundTransparency = 1
+                titleLbl.Font = Theme.FontMedium
+                titleLbl.Text = iName
+                titleLbl.TextColor3 = Theme.TextBody
+                titleLbl.TextSize = 11
+                titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+                titleLbl.TextTruncate = Enum.TextTruncate.AtEnd
+                titleLbl.Active = false
+                titleLbl.Parent = row
+
+                local box = Instance.new("TextBox")
+                box.Size = UDim2.new(0.48, 0, 0, 22)
+                box.Position = UDim2.new(1, 0, 0.5, 0)
+                box.AnchorPoint = Vector2.new(1, 0.5)
+                box.BackgroundColor3 = Theme.CardBg
+                box.BackgroundTransparency = 0.3
+                box.Font = Theme.FontRegular
+                box.PlaceholderText = placeholder
+                box.PlaceholderColor3 = Theme.TextDim
+                box.Text = current
+                box.TextColor3 = Theme.TextTitle
+                box.TextSize = 10
+                box.ClearTextOnFocus = false
+                addCorner(box, 4)
+                local bStroke = addStroke(box, Theme.Border, 1, 0.75)
+                box.Parent = row
+
+                box.Focused:Connect(function()
+                    makeTween(bStroke, 0.15, { Color = Theme.Accent, Transparency = 0.3 })
+                end)
+                box.FocusLost:Connect(function()
+                    makeTween(bStroke, 0.15, { Color = Theme.Border, Transparency = 0.75 })
+                end)
+
+                local inputObj = {
+                    Value = current,
+                    SetValue = function(self, val: string)
+                        self.Value = val
+                        box.Text = val
+                        if callback then task.spawn(callback, val) end
+                    end
+                }
+
+                box.FocusLost:Connect(function(enterPressed)
+                    inputObj.Value = box.Text
+                    if callback then task.spawn(callback, box.Text) end
+                end)
+
+                DiceUI.Options[id] = inputObj
+                task.defer(adaptColumns)
+                return inputObj
+            end
+
+            --==================================================
+            -- CONTROL: KEYBIND BINDER (COMPACT 30PX ROW)
+            --==================================================
+            function Section:AddKeybind(id: string, kCfg: {
+                Name: string,
+                Default: Enum.KeyCode?,
+                Callback: ((Enum.KeyCode) -> ())?
+            })
+                elementOrder = elementOrder + 1
+                local kName = kCfg.Name or id
+                local currentKey = kCfg.Default or Enum.KeyCode.E
+                local callback = kCfg.Callback
+                local listening = false
+
+                local row = Instance.new("Frame")
+                row.Name = "Keybind_" .. id
+                row.Size = UDim2.new(1, 0, 0, 30)
+                row.BackgroundColor3 = Theme.ItemBg
+                row.BackgroundTransparency = 0.5
+                row.Active = false
+                row.LayoutOrder = elementOrder
+                row.ClipsDescendants = true
+                addCorner(row, 6)
+                addStroke(row, Theme.Border, 1, 0.75)
+                addPadding(row, 0, 0, 8, 8)
+                row.Parent = card
+
+                local titleLbl = Instance.new("TextLabel")
+                titleLbl.Size = UDim2.new(1, -75, 1, 0)
+                titleLbl.BackgroundTransparency = 1
+                titleLbl.Font = Theme.FontMedium
+                titleLbl.Text = kName
+                titleLbl.TextColor3 = Theme.TextBody
+                titleLbl.TextSize = 11
+                titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+                titleLbl.Active = false
+                titleLbl.Parent = row
+
+                local bindBtn = Instance.new("TextButton")
+                bindBtn.Size = UDim2.new(0, 70, 0, 20)
+                bindBtn.Position = UDim2.new(1, 0, 0.5, 0)
+                bindBtn.AnchorPoint = Vector2.new(1, 0.5)
+                bindBtn.BackgroundColor3 = Theme.CardBg
+                bindBtn.BackgroundTransparency = 0.3
+                bindBtn.Font = Theme.FontBold
+                bindBtn.Text = "[ " .. currentKey.Name .. " ]"
+                bindBtn.TextColor3 = Theme.Accent
+                bindBtn.TextSize = 10
+                bindBtn.AutoButtonColor = false
+                addCorner(bindBtn, 4)
+                addStroke(bindBtn, Theme.Border, 1, 0.75)
+                bindBtn.Parent = row
+
+                local keybindObj = {
+                    Value = currentKey,
+                    SetValue = function(self, key: Enum.KeyCode)
+                        self.Value = key
+                        bindBtn.Text = "[ " .. key.Name .. " ]"
+                        if callback then task.spawn(callback, key) end
+                    end
+                }
+
+                bindBtn.MouseButton1Click:Connect(function()
+                    listening = true
+                    bindBtn.Text = "[ ... ]"
+                    bindBtn.TextColor3 = Theme.Warning
+                end)
+
+                local bindConn = UserInputService.InputBegan:Connect(function(input, gpe)
+                    if listening and not gpe and input.UserInputType == Enum.UserInputType.Keyboard then
+                        listening = false
+                        bindBtn.TextColor3 = Theme.Accent
+                        keybindObj:SetValue(input.KeyCode)
+                    end
+                end)
+                table.insert(DiceUI._connections, bindConn)
+
+                DiceUI.Options[id] = keybindObj
+                task.defer(adaptColumns)
+                return keybindObj
+            end
+
+            --==================================================
+            -- CONTROL: COLOR PICKER (COMPACT 30PX ROW)
+            --==================================================
+            function Section:AddColorPicker(id: string, cpCfg: {
+                Name: string,
+                Default: Color3?,
+                Callback: ((Color3) -> ())?
+            })
+                elementOrder = elementOrder + 1
+                local cpName = cpCfg.Name or id
+                local currentColor = cpCfg.Default or Theme.Accent
+                local callback = cpCfg.Callback
+                local isOpen = false
+
+                local row = Instance.new("Frame")
+                row.Name = "ColorPicker_" .. id
+                row.Size = UDim2.new(1, 0, 0, 30)
+                row.BackgroundColor3 = Theme.ItemBg
+                row.BackgroundTransparency = 0.5
+                row.Active = false
+                row.LayoutOrder = elementOrder
+                row.ClipsDescendants = true
+                addCorner(row, 6)
+                addStroke(row, Theme.Border, 1, 0.75)
+                row.Parent = card
+
+                local topRow = Instance.new("Frame")
+                topRow.BorderSizePixel = 0
+                topRow.Name = "TopRow"
+                topRow.Size = UDim2.new(1, 0, 0, 30)
+                topRow.BackgroundTransparency = 1
+                topRow.Active = false
+                topRow.Parent = row
+                addPadding(topRow, 0, 0, 8, 8)
+
+                local titleLbl = Instance.new("TextLabel")
+                titleLbl.Size = UDim2.new(1, -70, 1, 0)
+                titleLbl.BackgroundTransparency = 1
+                titleLbl.Font = Theme.FontMedium
+                titleLbl.Text = cpName
+                titleLbl.TextColor3 = Theme.TextBody
+                titleLbl.TextSize = 11
+                titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+                titleLbl.Active = false
+                titleLbl.Parent = topRow
+
+                local previewBtn = Instance.new("TextButton")
+                previewBtn.Name = "Preview"
+                previewBtn.Size = UDim2.new(0, 48, 0, 18)
+                previewBtn.Position = UDim2.new(1, 0, 0.5, 0)
+                previewBtn.AnchorPoint = Vector2.new(1, 0.5)
+                previewBtn.BackgroundColor3 = currentColor
+                previewBtn.AutoButtonColor = false
+                previewBtn.Text = ""
+                addCorner(previewBtn, 4)
+                addStroke(previewBtn, Color3.fromRGB(255, 255, 255), 1, 0.6)
+                previewBtn.Parent = topRow
+
+                -- Dropdown Palette Tray (starts collapsed and hidden to prevent input sinking)
+                local paletteTray = Instance.new("Frame")
+                paletteTray.BorderSizePixel = 0
+                paletteTray.Name = "PaletteTray"
+                paletteTray.Size = UDim2.new(1, -16, 0, 0)
+                paletteTray.Position = UDim2.new(0, 8, 0, 32)
+                paletteTray.BackgroundTransparency = 1
+                paletteTray.Visible = false
+                paletteTray.ClipsDescendants = true
+                paletteTray.Parent = row
+
+                local pGrid = Instance.new("UIGridLayout")
+                pGrid.CellSize = UDim2.new(0, 20, 0, 20)
+                pGrid.CellPadding = UDim2.new(0, 5, 0, 5)
+                pGrid.SortOrder = Enum.SortOrder.LayoutOrder
+                pGrid.Parent = paletteTray
+
+                local presets = {
+                    Color3.fromRGB(239, 68, 68),   -- Crimson Red
+                    Color3.fromRGB(249, 115, 22),  -- Neon Orange
+                    Color3.fromRGB(234, 179, 8),   -- Amber Gold
+                    Color3.fromRGB(16, 185, 129),  -- Emerald Green
+                    Color3.fromRGB(6, 182, 212),   -- Electric Cyan
+                    Color3.fromRGB(59, 130, 246),  -- Royal Blue
+                    Color3.fromRGB(168, 85, 247),  -- Royal Amethyst
+                    Color3.fromRGB(217, 70, 239),  -- Neon Magenta
+                    Color3.fromRGB(255, 255, 255),  -- Pure White
+                    Color3.fromRGB(30, 24, 48)     -- Dark Charcoal
+                }
+
+                local colorObj = {
+                    Value = currentColor,
+                    SetValue = function(self, col: Color3)
+                        self.Value = col
+                        currentColor = col
+                        previewBtn.BackgroundColor3 = col
+                        if callback then task.spawn(callback, col) end
+                    end
+                }
+
+                for idx, col in ipairs(presets) do
+                    local swatch = Instance.new("TextButton")
+                    swatch.Name = "Swatch_" .. idx
+                    swatch.BackgroundColor3 = col
+                    swatch.AutoButtonColor = false
+                    swatch.Text = ""
+                    swatch.LayoutOrder = idx
+                    addCorner(swatch, 4)
+                    addStroke(swatch, Color3.fromRGB(0, 0, 0), 1, 0.6)
+                    swatch.Parent = paletteTray
+
+                    swatch.MouseButton1Click:Connect(function()
+                        colorObj:SetValue(col)
+                    end)
+                end
+
+                local function togglePalette()
+                    isOpen = not isOpen
+                    if isOpen then
+                        paletteTray.Visible = true
+                        paletteTray.Size = UDim2.new(1, -16, 0, 50)
+                        makeTween(row, 0.22, { Size = UDim2.new(1, 0, 0, 88) })
+                        task.delay(0.23, adaptColumns)
+                    else
+                        local tw = makeTween(row, 0.2, { Size = UDim2.new(1, 0, 0, 30) })
+                        tw.Completed:Connect(function()
+                            if not isOpen then
+                                paletteTray.Visible = false
+                                paletteTray.Size = UDim2.new(1, -16, 0, 0)
+                            end
+                        end)
+                        task.delay(0.21, adaptColumns)
+                    end
+                end
+
+                previewBtn.MouseButton1Click:Connect(togglePalette)
+
+                DiceUI.Options[id] = colorObj
+                task.defer(adaptColumns)
+                return colorObj
+            end
+
+            --==================================================
+            -- CONTROL: PROGRESS BAR (READ-ONLY, ANIMATED SHIMMER)
+            --==================================================
+            function Section:AddProgressBar(id: string, pCfg: {
+                Name: string,
+                Value: number?,
+                Color: Color3?,
+                Animated: boolean?
+            })
+                elementOrder = elementOrder + 1
+                local pName = pCfg.Name or id
+                local value = math.clamp(pCfg.Value or 0, 0, 1)
+                local color = pCfg.Color or Theme.Accent
+
+                local row = Instance.new("Frame")
+                row.Name = "Progress_" .. id
+                row.Size = UDim2.new(1, 0, 0, 38)
+                row.BackgroundColor3 = Theme.ItemBg
+                row.BackgroundTransparency = 0.5
+                row.Active = false
+                row.LayoutOrder = elementOrder
+                row.ClipsDescendants = true
+                addCorner(row, 6)
+                addStroke(row, Theme.Border, 1, 0.75)
+                addPadding(row, 5, 5, 8, 8)
+                row.Parent = card
+
+                local titleLbl = Instance.new("TextLabel")
+                titleLbl.Size = UDim2.new(1, -50, 0, 16)
+                titleLbl.BackgroundTransparency = 1
+                titleLbl.Font = Theme.FontMedium
+                titleLbl.Text = pName
+                titleLbl.TextColor3 = Theme.TextBody
+                titleLbl.TextSize = 11
+                titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+                titleLbl.Active = false
+                titleLbl.Parent = row
+
+                local pctLbl = Instance.new("TextLabel")
+                pctLbl.Size = UDim2.new(0, 48, 0, 16)
+                pctLbl.Position = UDim2.new(1, 0, 0, 0)
+                pctLbl.AnchorPoint = Vector2.new(1, 0)
+                pctLbl.BackgroundTransparency = 1
+                pctLbl.Font = Theme.FontBold
+                pctLbl.Text = string.format("%d%%", math.floor(value * 100 + 0.5))
+                pctLbl.TextColor3 = color
+                pctLbl.TextSize = 10
+                pctLbl.TextXAlignment = Enum.TextXAlignment.Right
+                pctLbl.Active = false
+                pctLbl.Parent = row
+
+                local track = Instance.new("Frame")
+                track.Size = UDim2.new(1, 0, 0, 6)
+                track.Position = UDim2.new(0, 0, 1, -6)
+                track.BackgroundColor3 = Theme.ItemTrack
+                track.BorderSizePixel = 0
+                track.Active = false
+                addCorner(track, 3)
+                track.Parent = row
+
+                local fill = Instance.new("Frame")
+                fill.Size = UDim2.new(value, 0, 1, 0)
+                fill.BackgroundColor3 = color
+                fill.BorderSizePixel = 0
+                fill.Active = false
+                addCorner(fill, 3)
+                fill.Parent = track
+
+                if pCfg.Animated then
+                    local shimmer = Instance.new("UIGradient")
+                    shimmer.Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, color),
+                        ColorSequenceKeypoint.new(0.5, Theme.AccentLight),
+                        ColorSequenceKeypoint.new(1, color)
+                    })
+                    shimmer.Offset = Vector2.new(-1, 0)
+                    shimmer.Parent = fill
+                    task.spawn(function()
+                        while fill.Parent do
+                            shimmer.Offset = Vector2.new(-1, 0)
+                            local tw = makeTween(shimmer, 1.6, { Offset = Vector2.new(1, 0) }, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+                            tw.Completed:Wait()
+                            task.wait(0.4)
+                        end
+                    end)
+                end
+
+                local progObj = {
+                    Value = value,
+                    SetValue = function(self, v: number)
+                        v = math.clamp(v, 0, 1)
+                        self.Value = v
+                        pctLbl.Text = string.format("%d%%", math.floor(v * 100 + 0.5))
+                        makeTween(fill, 0.25, { Size = UDim2.new(v, 0, 1, 0) })
+                    end
+                }
+                DiceUI.Options[id] = progObj
+                task.defer(adaptColumns)
+                return progObj
+            end
+
+            --==================================================
+            -- CONTROL: PARAGRAPH / CALLOUT NOTE
+            --==================================================
+            function Section:AddParagraph(pCfg: { Title: string, Content: string })
+                elementOrder = elementOrder + 1
+                local box = Instance.new("Frame")
+                box.Size = UDim2.new(1, 0, 0, 0)
+                box.AutomaticSize = Enum.AutomaticSize.Y
+                box.BackgroundColor3 = Theme.ItemBg
+                box.BackgroundTransparency = 0.6
+                box.Active = false
+                box.LayoutOrder = elementOrder
+                box.ClipsDescendants = true
+                addCorner(box, 6)
+                addPadding(box, 6, 6, 8, 8)
+                addStroke(box, Theme.Border, 1, 0.8)
+                box.Parent = card
+
+                local bList = Instance.new("UIListLayout")
+                bList.Padding = UDim.new(0, 2)
+                bList.SortOrder = Enum.SortOrder.LayoutOrder
+                bList.Parent = box
+
+                local pTitle = Instance.new("TextLabel")
+                pTitle.Size = UDim2.new(1, 0, 0, 14)
+                pTitle.BackgroundTransparency = 1
+                pTitle.Font = Theme.FontBold
+                pTitle.Text = pCfg.Title
+                pTitle.TextColor3 = Theme.TextTitle
+                pTitle.TextSize = 10
+                pTitle.TextXAlignment = Enum.TextXAlignment.Left
+                pTitle.Active = false
+                pTitle.Parent = box
+
+                local pContent = Instance.new("TextLabel")
+                pContent.Size = UDim2.new(1, 0, 0, 0)
+                pContent.AutomaticSize = Enum.AutomaticSize.Y
+                pContent.BackgroundTransparency = 1
+                pContent.Font = Theme.FontRegular
+                pContent.Text = pCfg.Content
+                pContent.TextColor3 = Theme.TextMuted
+                pContent.TextSize = 9
+                pContent.TextWrapped = true
+                pContent.TextXAlignment = Enum.TextXAlignment.Left
+                pContent.Active = false
+                pContent.Parent = box
+
+                task.defer(adaptColumns)
+                return box
+            end
+
+            --==================================================
+            -- CONTROL: LABEL / SIMPLE TEXT
+            --==================================================
+            function Section:AddLabel(text: string)
+                elementOrder = elementOrder + 1
+                local lbl = Instance.new("TextLabel")
+                lbl.Size = UDim2.new(1, 0, 0, 16)
+                lbl.AutomaticSize = Enum.AutomaticSize.Y
+                lbl.BackgroundTransparency = 1
+                lbl.Font = Theme.FontRegular
+                lbl.Text = text
+                lbl.TextColor3 = Theme.TextMuted
+                lbl.TextSize = 10
+                lbl.TextWrapped = true
+                lbl.TextXAlignment = Enum.TextXAlignment.Left
+                lbl.Active = false
+                lbl.LayoutOrder = elementOrder
+                addPadding(lbl, 0, 0, 8, 8)
+                lbl.Parent = card
+                task.defer(adaptColumns)
+                return lbl
+            end
+
+            --==================================================
+            -- CONTROL: DIVIDER LINE
+            --==================================================
+            function Section:AddDivider(text: string?)
+                elementOrder = elementOrder + 1
+                if text and text ~= "" then
+                    local divContainer = Instance.new("Frame")
+                    divContainer.BorderSizePixel = 0
+                    divContainer.Size = UDim2.new(1, 0, 0, 16)
+                    divContainer.BackgroundTransparency = 1
+                    divContainer.Active = false
+                    divContainer.LayoutOrder = elementOrder
+                    divContainer.Parent = card
+
+                    local lLine = Instance.new("Frame")
+                    lLine.Size = UDim2.new(0.5, -35, 0, 1)
+                    lLine.Position = UDim2.new(0, 0, 0.5, 0)
+                    lLine.BackgroundColor3 = Theme.Border
+                    lLine.BackgroundTransparency = 0.6
+                    lLine.BorderSizePixel = 0
+                    lLine.Parent = divContainer
+
+                    local rLine = Instance.new("Frame")
+                    rLine.Size = UDim2.new(0.5, -35, 0, 1)
+                    rLine.Position = UDim2.new(1, 0, 0.5, 0)
+                    rLine.AnchorPoint = Vector2.new(1, 0)
+                    rLine.BackgroundColor3 = Theme.Border
+                    rLine.BackgroundTransparency = 0.6
+                    rLine.BorderSizePixel = 0
+                    rLine.Parent = divContainer
+
+                    local midLbl = Instance.new("TextLabel")
+                    midLbl.Size = UDim2.new(0, 70, 1, 0)
+                    midLbl.Position = UDim2.new(0.5, 0, 0.5, 0)
+                    midLbl.AnchorPoint = Vector2.new(0.5, 0.5)
+                    midLbl.BackgroundTransparency = 1
+                    midLbl.Font = Theme.FontBold
+                    midLbl.Text = text:upper()
+                    midLbl.TextColor3 = Theme.TextDim
+                    midLbl.TextSize = 8
+                    midLbl.Parent = divContainer
+
+                    task.defer(adaptColumns)
+                    return divContainer
+                else
+                    local div = Instance.new("Frame")
+                    div.Size = UDim2.new(1, 0, 0, 1)
+                    div.BackgroundColor3 = Theme.Border
+                    div.BackgroundTransparency = 0.6
+                    div.BorderSizePixel = 0
+                    div.Active = false
+                    div.LayoutOrder = elementOrder
+                    div.Parent = card
+                    task.defer(adaptColumns)
+                    return div
+                end
+            end
+
+            task.defer(adaptColumns)
+            return Section
+        end
+
+        table.insert(Window._tabs, Tab)
+        if #Window._tabs == 1 then
+            Tab:Select()
+        end
+        return Tab
+    end
+
+    return Window
+end
+
+
+--==================================================
+-- DEMO IMPLEMENTATION (DICEHUB SCRIPT TEMPLATE V2.5)
+-- Production Standard: Clean Luxury, Modular Cross-Platform, High-Density Suite
+--==================================================
+local Window = DiceUI:CreateWindow({
+    Title = "DICEHUB",
+    SubTitle = "Universal Suite • v3.0 PRO",
+    Size = UDim2.new(0, 720, 0, 460),
+    ToggleKey = Enum.KeyCode.RightControl,
+    MobileToggle = true
+})
+
+-- CATEGORY: AUTOMATION
+-- TAB 1: AUTO FARM
+local tab1 = Window:CreateTab({ Name = "Auto Farm", Icon = "sword", Badge = "HOT" })
+
+local sec1 = tab1:CreateSection({
+    Name = "Manual Auto Farm Controls",
+    Side = "Left",
+    Icon = "sword",
+    Badge = "CORE",
+    Description = "Configure targeting heuristics and mob positions"
+})
+
+sec1:AddToggle("AutoFarm", {
+    Name = "Enable Auto Farm",
+    Default = false,
+    Callback = function(v)
+        DiceUI:Notify({
+            Title = "Auto Farm",
+            Content = v and "Started hunting target mobs!" or "Auto farm paused.",
+            Duration = 2
+        })
+    end
+})
+
+sec1:AddDropdown("TargetMob", {
+    Name = "Target Mob",
+    Options = {"Bandit", "Wolf", "Mother Bear", "Ice Golem", "Demon Slayer"},
+    Default = "Bandit",
+    Callback = function(mob)
+        print("[DiceHub] Selected target:", mob)
+    end
+})
+
+sec1:AddSlider("LockDist", {
+    Name = "Lock Distance",
+    Min = 0,
+    Max = 40,
+    Default = 15,
+    Suffix = " studs"
+})
+
+sec1:AddSlider("HeadOffset", {
+    Name = "Height Offset",
+    Min = -5,
+    Max = 15,
+    Default = 3,
+    Suffix = " studs"
+})
+
+local sec2 = tab1:CreateSection({
+    Name = "Combat Settings",
+    Side = "Right",
+    Icon = "zap",
+    Description = "Sub-second attack and skill automation"
+})
+
+sec2:AddToggle("FastAttack", { Name = "Fast Attack", Default = true })
+sec2:AddToggle("AutoSkill", { Name = "Auto Skills", Default = false })
+sec2:AddSlider("AttackDelay", {
+    Name = "Attack Delay",
+    Min = 0.05,
+    Max = 1.0,
+    Default = 0.15,
+    Decimals = 2,
+    Suffix = "s"
+})
+
+sec2:AddButton({
+    Name = "Instant Kill Aura",
+    Icon = "sparkles",
+    Style = "Danger",
+    Callback = function()
+        DiceUI:Notify({ Title = "Combat", Content = "Fired Kill Aura burst around player!", Duration = 2.5 })
+    end
+})
+
+-- TAB 2: AUTO QUEST
+local tab2 = Window:CreateTab({ Name = "Auto Quest", Icon = "scroll" })
+local qSec1 = tab2:CreateSection({ Name = "Quest Manager", Side = "Left", Icon = "scroll" })
+qSec1:AddToggle("AutoAccept", { Name = "Auto Accept Quests", Default = true })
+qSec1:AddDropdown("QuestSelect", {
+    Name = "Select Quest",
+    Options = {"Bandit Quest (Lv. 1)", "Mother Bear (Lv. 15)", "Iceveil Trial (Lv. 40)", "Legendary Blade"},
+    Default = "Bandit Quest (Lv. 1)"
+})
+qSec1:AddButton({
+    Name = "Complete Active Quest",
+    Icon = "check",
+    Style = "Primary",
+    Callback = function()
+        DiceUI:Notify({ Title = "Quest", Content = "Triggered quest completion remote!", Duration = 2 })
+    end
+})
+
+local qSec2 = tab2:CreateSection({ Name = "Quest Teleports", Side = "Right", Icon = "map-pin" })
+qSec2:AddButton({
+    Name = "Teleport to Quest NPC",
+    Icon = "map-pin",
+    Callback = function()
+        DiceUI:Notify({ Title = "Teleport", Content = "Warping to quest giver...", Duration = 2 })
+    end
+})
+qSec2:AddButton({
+    Name = "Abandon Quest",
+    Icon = "trash",
+    Style = "Danger",
+    Callback = function()
+        DiceUI:Notify({ Title = "Quest", Content = "Quest abandoned.", Duration = 2 })
+    end
+})
+qSec2:AddParagraph({
+    Title = "Notice on Quest Teleports",
+    Content = "Teleporting across regions triggers anti-cheat checks. Keep lock distance above 10 studs."
+})
+
+-- CATEGORY: COMBAT & GEAR
+-- TAB 3: GEAR & STATS
+local tab3 = Window:CreateTab({ Name = "Gear & Stats", Icon = "shield" })
+local gSec1 = tab3:CreateSection({ Name = "Stat Upgrades", Side = "Left", Icon = "flame" })
+gSec1:AddToggle("AutoStr", { Name = "Auto Upgrade Strength", Default = false })
+gSec1:AddToggle("AutoDef", { Name = "Auto Upgrade Defense", Default = false })
+gSec1:AddInput("BatchPoints", { Name = "Points per Upgrade", Placeholder = "e.g. 5", Default = "1" })
+
+local gSec2 = tab3:CreateSection({ Name = "Tool Management", Side = "Right", Icon = "layers" })
+gSec2:AddButton({
+    Name = "Auto Equip Best Weapon",
+    Icon = "sword",
+    Style = "Primary",
+    Callback = function()
+        DiceUI:Notify({ Title = "Inventory", Content = "Equipped best weapon!", Duration = 2 })
+    end
+})
+gSec2:AddButton({
+    Name = "Unequip All Accessories",
+    Icon = "refresh",
+    Callback = function()
+        DiceUI:Notify({ Title = "Inventory", Content = "Removed all accessories.", Duration = 2 })
+    end
+})
+
+-- CATEGORY: WORLD & TELEPORT
+-- TAB 4: TELEPORTS
+local tab4 = Window:CreateTab({ Name = "Teleports", Icon = "compass" })
+local tpSec1 = tab4:CreateSection({ Name = "World Landmarks", Side = "Left", Icon = "compass" })
+tpSec1:AddDropdown("Dest", {
+    Name = "Destination",
+    Options = {"Spawn Village", "Bandit Camp", "Frost Peak", "Desert Ruins", "Pirate Cove"},
+    Default = "Spawn Village"
+})
+tpSec1:AddButton({
+    Name = "Safe Glide Teleport",
+    Icon = "zap",
+    Style = "Primary",
+    Callback = function()
+        DiceUI:Notify({ Title = "Teleport", Content = "Gliding safely to destination...", Duration = 2 })
+    end
+})
+
+local tpSec2 = tab4:CreateSection({ Name = "Player Teleport", Side = "Right", Icon = "target" })
+tpSec2:AddInput("TargetPlayer", { Name = "Player Username", Placeholder = "Enter name..." })
+tpSec2:AddButton({
+    Name = "Teleport to Player",
+    Icon = "crosshair",
+    Callback = function()
+        DiceUI:Notify({ Title = "Teleport", Content = "Searching player coordinates...", Duration = 2 })
+    end
+})
+
+-- CATEGORY: VISUALS
+-- TAB 5: VISUALS & ESP
+local tab5 = Window:CreateTab({ Name = "Visuals & ESP", Icon = "palette", Badge = "PRO" })
+local vSec1 = tab5:CreateSection({ Name = "Player ESP", Side = "Left", Icon = "eye", Badge = "ESP", Description = "Wallhack, boxes, tracers, and highlights" })
+vSec1:AddToggle("EspEnabled", { Name = "Enable ESP Master", Default = true })
+vSec1:AddToggle("EspBoxes", { Name = "2D Bounding Boxes", Default = true })
+vSec1:AddToggle("EspTracers", { Name = "Snapline Tracers", Default = false })
+vSec1:AddColorPicker("EspColor", {
+    Name = "ESP Highlight Color",
+    Default = Color3.fromRGB(56, 189, 248),
+    Callback = function(col)
+        DiceUI:Notify({ Title = "Visuals", Content = "Updated ESP color!", Duration = 1.5 })
+    end
+})
+vSec1:AddSlider("EspDistance", { Name = "Max ESP Distance", Min = 50, Max = 2000, Default = 500, Suffix = " studs" })
+
+local vSec2 = tab5:CreateSection({ Name = "World Render", Side = "Right", Icon = "sun", Description = "Atmosphere and lighting tweaks" })
+vSec2:AddToggle("FullBright", { Name = "Fullbright (Night Vision)", Default = false })
+vSec2:AddToggle("RemoveFog", { Name = "No Fog / Clear Sky", Default = true })
+vSec2:AddColorPicker("WorldTint", {
+    Name = "Ambient World Tint",
+    Default = Color3.fromRGB(255, 255, 255)
+})
+vSec2:AddDivider("Performance")
+vSec2:AddButton({
+    Name = "Boost FPS / Low Graphics",
+    Icon = "zap",
+    Style = "Primary",
+    Callback = function()
+        DiceUI:Notify({ Title = "Graphics", Content = "Optimized texture memory for high FPS!", Duration = 2 })
+    end
+})
+
+-- CATEGORY: MISC
+local tabM = Window:CreateTab({ Name = "Events & Pets", Icon = "bone", Badge = "NEW" })
+local mSec1 = tabM:CreateSection({ Name = "Auto Collect", Side = "Left", Icon = "gift", Badge = "NEW" })
+mSec1:AddToggle("AutoCollect", { Name = "Collect Drops", Default = true })
+mSec1:AddToggle("AutoHatch", { Name = "Auto Hatch Eggs", Default = false })
+mSec1:AddSlider("CollectRange", { Name = "Collect Range", Min = 10, Max = 200, Default = 60, Suffix = " studs" })
+local mSec2 = tabM:CreateSection({ Name = "Notifications", Side = "Right", Icon = "bell" })
+mSec2:AddButton({ Name = "Test Success", Icon = "check", Style = "Primary", Callback = function() DiceUI:Notify({ Title = "Success", Content = "Action completed.", Type = "success" }) end })
+mSec2:AddButton({ Name = "Test Warning", Icon = "alert-circle", Callback = function() DiceUI:Notify({ Title = "Warning", Content = "Low stamina detected.", Type = "warning" }) end })
+mSec2:AddButton({ Name = "Test Error", Icon = "close", Style = "Danger", Callback = function() DiceUI:Notify({ Title = "Error", Content = "Remote failed.", Type = "error" }) end })
+
+-- CATEGORY: SYSTEM
+-- TAB 6: SETTINGS & SYSTEM
+local tab6 = Window:CreateTab({ Name = "Settings", Icon = "settings" })
+local setSec1 = tab6:CreateSection({ Name = "Preferences", Side = "Left", Icon = "sliders" })
+setSec1:AddKeybind("HubKey", {
+    Name = "Toggle Hub Keybind",
+    Default = Enum.KeyCode.RightControl,
+    Callback = function(key)
+        DiceUI:Notify({ Title = "Settings", Content = "New toggle key set to: " .. key.Name, Duration = 2 })
+    end
+})
+setSec1:AddColorPicker("CustomAccent", {
+    Name = "Custom Accent Color",
+    Default = Color3.fromRGB(56, 189, 248),
+    Callback = function(col)
+        DiceUI:Notify({ Title = "Theme", Content = "Accent preview updated!", Duration = 1.5 })
+    end
+})
+setSec1:AddButton({
+    Name = "Save Configuration",
+    Icon = "save",
+    Style = "Primary",
+    Callback = function()
+        DiceUI:Notify({ Title = "Config", Content = "Settings saved to profile successfully!", Duration = 2 })
+    end
+})
+
+local setSec2 = tab6:CreateSection({ Name = "System & Unload", Side = "Right", Icon = "activity" })
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+setSec2:AddParagraph({
+    Title = "Session Telemetry",
+    Content = "Player: " .. LocalPlayer.Name .. " | Place: " .. tostring(game.PlaceId) .. "\nPlatform: " .. (game:GetService("UserInputService").TouchEnabled and "Mobile / Touch" or "PC / Desktop")
+})
+setSec2:AddProgressBar("MemUsage", { Name = "Memory Usage", Value = 0.42, Animated = true })
+setSec2:AddProgressBar("ScriptPerf", { Name = "Script Performance", Value = 0.88, Color = Color3.fromRGB(16, 185, 129) })
+setSec2:AddButton({
+    Name = "Unload UI",
+    Icon = "close",
+    Style = "Danger",
+    Callback = function()
+        DiceUI:Unload()
+        print("[DiceHub] UI Cleanly unloaded.")
+    end
+})
+
+DiceUI:Notify({
+    Title = "DiceHUB Universal",
+    Content = "Template v3.0 loaded! Obsidian acrylic layout active.",
+    Type = "success",
+    Duration = 3.0
+})
+
+print("[DiceHUB] Modern UI Template v2.2 initialized successfully!")
+return DiceUI
